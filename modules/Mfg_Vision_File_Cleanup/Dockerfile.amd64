@@ -1,0 +1,14 @@
+FROM visionaccelerator.azurecr.io/edge_base/amd64/python:3.7-slim-buster
+
+RUN apt update && apt upgrade -y
+WORKDIR /app
+
+COPY requirements.txt ./
+RUN python3 -m pip install --upgrade pip setuptools wheel urllib3
+RUN python3 -m pip install -r requirements.txt
+
+RUN apt clean -y && apt autoremove -y
+
+COPY . .
+
+CMD [ "python3", "-u", "./file_cleanup_policy.py" ]
