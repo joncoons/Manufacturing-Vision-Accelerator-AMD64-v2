@@ -1,0 +1,21 @@
+FROM visionaccelerator.azurecr.io/edge_base/amd64/python:3.7-slim-buster
+
+RUN apt update && apt upgrade -y
+
+RUN mkdir /capture_temp && chmod 777 -R /capture_temp
+RUN mkdir /capture_volume && chmod -R 777 /capture_volume
+
+COPY /capture /capture_temp
+
+WORKDIR /app
+
+# COPY requirements.txt ./
+RUN python3 -m pip install --upgrade pip setuptools wheel azure-iot-device
+# RUN python3 -m pip install -r requirements.txt
+
+COPY main.py ./
+COPY ./move_capture.sh ./
+RUN chmod a+x ./move_capture.sh
+
+
+ENTRYPOINT [ "./move_capture.sh" ]

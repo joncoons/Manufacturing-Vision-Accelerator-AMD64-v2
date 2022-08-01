@@ -1,0 +1,21 @@
+FROM visionaccelerator.azurecr.io/edge_base/amd64/python:3.7-slim-buster
+
+RUN apt update && apt upgrade -y
+
+RUN mkdir /inference_temp && chmod 777 -R /inference_temp
+RUN mkdir /inference_volume && chmod -R 777 /inference_volume
+
+COPY /inference /inference_temp
+
+WORKDIR /app
+
+# COPY requirements.txt ./
+RUN python3 -m pip install --upgrade pip setuptools wheel azure-iot-device
+# RUN python3 -m pip install -r requirements.txt
+
+COPY main.py ./
+COPY ./move_inference.sh ./
+RUN chmod a+x ./move_inference.sh
+
+
+ENTRYPOINT [ "./move_inference.sh" ]
