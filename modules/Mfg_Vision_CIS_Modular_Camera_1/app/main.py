@@ -82,6 +82,7 @@ class CaptureInferenceStore():
             modelName, modelVersion, targetDim, probThres, iouThres, retrainInterval, storeRawFrames, storeAllInferences, 
             modelFile, labelFile, send_to_upload, send_to_upstream)
 
+
         if camGvspBasler:     
             from capture.basler.camera_gvsp_basler import Basler_GVSP_Camera
             Basler_GVSP_Camera(camID, camTrigger, camURI, camLocation, camPosition, camFPS, inferenceFPS, 
@@ -109,7 +110,7 @@ class CaptureInferenceStore():
         else:
             print("No camera selected")
 
-hub_connector: HubConnector = None
+# hub_connector: HubConnector = None
 
 def __convertStringToBool(env: str) -> bool:
     if env in ['true', 'True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes']:

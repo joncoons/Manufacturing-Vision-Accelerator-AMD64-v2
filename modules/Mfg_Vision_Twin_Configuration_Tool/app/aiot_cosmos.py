@@ -1,19 +1,27 @@
 from markupsafe import escape
-import azure.cosmos.cosmos_client as cosmos_client
-import azure.cosmos.exceptions as exceptions
-from azure.cosmos.partition_key import PartitionKey
+from azure.cosmos import CosmosClient, PartitionKey, exceptions
+# import azure.cosmos.cosmos_client as cosmos_client
+# import azure.cosmos.exceptions as exceptions
+# from azure.cosmos.partition_key import PartitionKey
 
-p_key = PartitionKey(path='/deviceId', kind='Hash')
+# p_key = PartitionKey(path='/deviceId', kind='Hash')
 
 def cosmos_connect(db_name, uri, key, collection):
-    client = cosmos_client.CosmosClient(uri, {'masterKey': key},consistency_level='Session')
+    client = CosmosClient(uri, credential=key, consistency_level='Session')
 
-    db = client.create_database_if_not_exists(id=db_name)
-    container = db.create_container_if_not_exists(id=collection, partition_key=p_key)
+    # db = client.create_database_if_not_exists(id=db_name)
+    try:
+        db = client.create_database(db_name)
+    except exceptions.CosmosResourceExistsError:
+        db = client.get_database_client(db_name)
+    try:
+        container = db.create_container(id=collection, partition_key=PartitionKey(path="/deviceId"))
+    except exceptions.CosmosResourceExistsError:
+        container = db.get_container_client(collection)
     return container
 
 def cosmos_delete_db(db_name, uri, key):
-    client = cosmos_client.CosmosClient(uri, {'masterKey': key} )
+    client = CosmosClient(uri, credential=key)
     try:
         client.delete_database(db_name)
         print('Database with id \'{0}\' was deleted'.format(db_name))

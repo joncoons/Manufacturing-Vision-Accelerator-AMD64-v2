@@ -2,17 +2,17 @@ import os
 import sys
 from azure.storage.blob import BlobServiceClient, ContainerClient, BlobClient, __version__
 
-def get_model_names():
+def get_model_names(blob_conn, blob_contain):
 
-    blob_conn_str = os.environ['STORE_CONN_STR']
+    blob_conn_str = blob_conn
 
-    container_name ='model-sync'
+    container_name = blob_contain
 
     storage_client = BlobServiceClient.from_connection_string(blob_conn_str)
 
     container_client = storage_client.get_container_client(container_name)
 
-    blob_list = container_client.list_blobs()
+    # blob_list = container_client.list_blobs()
     # for blob in blob_list:
     #     print("\t" + blob.name)
 
@@ -22,6 +22,8 @@ def get_model_names():
         model_name = item.name
         model_name = model_name.rstrip('/')
         model_list.append(model_name)
+
+    print(f"Model List:  {model_list}")
         
     return model_list
 

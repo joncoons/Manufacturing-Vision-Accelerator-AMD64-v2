@@ -7,24 +7,10 @@ import os
 from datetime import datetime
 from capture.frame_save import FrameSave
 
-# providers = [
-#     ('CUDAExecutionProvider', {
-#         'device_id': 0,
-#         'arena_extend_strategy': 'kSameAsRequested ',
-#         'gpu_mem_limit': 2 * 1024 * 1024 * 1024,
-#         'cudnn_conv_algo_search': 'DEFAULT',
-#         'do_copy_in_default_stream': True,
-#     }),
-#     'CPUExecutionProvider',
-# ]
 providers = [
     'CUDAExecutionProvider',
     'CPUExecutionProvider',
 ]
-
-# provider = [
-#     'CPUExecutionProvider',
-# ]
 
 class ONNXRuntimeObjectDetection():
 
@@ -63,15 +49,6 @@ class ONNXRuntimeObjectDetection():
         self.channel = channel
         self.height_onnx = height_onnx
         self.width_onnx = width_onnx
-        # self.sess_input = self.session.get_inputs()
-        # self.sess_output = self.session.get_outputs()
-        # self.output_name = self.session.get_outputs()[0].name
-        # self.batch_size = self.session.get_inputs()[0].shape[0]
-        # self.channels = self.session.get_inputs()[0].shape[1]
-        # self.img_size_h = self.session.get_inputs()[0].shape[2]
-        # self.img_size_w = self.session.get_inputs()[0].shape[3]
-        # print("Input: {} Output: {} Batch Size: {} Model ImgH: {} Model ImgW: {}".format(self.input_name,self.output_name,self.batch_size,self.img_size_h,self.img_size_w))
-        # self.is_fp16 = self.session.get_inputs()[0].type == 'tensor(float16)'
         self.classes = classes
         self.num_classes = len(classes)
              
@@ -79,9 +56,6 @@ class ONNXRuntimeObjectDetection():
         inputs = pp_image
         img_shape_batch = pp_image.shape[0]
         image = np.array(image)
-        # print(f"img_batch: {img_shape_batch}")
-        # if self.is_fp16:
-        #     inputs = inputs.astype(np.float16)
         output_names = [output.name for output in self.sess_output]
         print(f"Output_names: {output_names}")
         outputs = self.session.run(output_names=output_names, input_feed={self.sess_input[0].name:inputs})
@@ -104,8 +78,6 @@ class ONNXRuntimeObjectDetection():
             filetime = now.strftime("%Y%d%m%H%M%S%f")
             annotatedName = f"mask-{filetime}-annotated.jpg"
             annotatedPath = os.path.join('/images_volume', annotatedName)
-            # output_counter = 0
-            # output_path = "/debug/"
             raw_pred = []
             
             color = (0, 255, 0)
@@ -118,18 +90,7 @@ class ONNXRuntimeObjectDetection():
                 labelId = label_index.item()
                 labelName = classes[label_index]
                 image_text = f"{labelName}@{probability}%"
-
-                # mask_list = mask[0, :, :, None]
-                # mask_list = mask_list.tolist()
-
-                # output_counter += 1
-                # output_file = f"output_{output_counter}.txt"
-                # output_full = os.path.join(output_path, output_file)
-                # im_mask = mask[:, :, None]
                 mask = mask[0, :, :, None]
-                # mask_list=im_mask.tolist()
-                # print(mask_list)
-                # ONNX Azure ML guidance
                 mask = cv2.resize(mask, (image.shape[1], image.shape[0]), 0, 0, interpolation = cv2.INTER_NEAREST)    
                 mask = mask > self.target_prob
                 image_masked = image.copy()

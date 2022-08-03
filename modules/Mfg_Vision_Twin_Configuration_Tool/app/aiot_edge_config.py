@@ -1,4 +1,4 @@
-from email.policy import default
+import argparse
 import os
 import sys
 import pickle
@@ -30,8 +30,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '5199F5E8F6D16AF4FF452D3D8B74D'
 
 Bootstrap(app)
-
-models = get_model_names()
+print(os.environ['STORE_CONN_STR'])
+print(os.environ['BLOB_AZURE_MODEL_CONTAINER'])
+store_conn_str = os.environ['STORE_CONN_STR']
+blob_azure_model_container = os.environ['BLOB_AZURE_MODEL_CONTAINER']
+models = get_model_names(store_conn_str, blob_azure_model_container)
 
 camera_type_list = [
     'Allied Vision GVSP',
@@ -60,6 +63,8 @@ class SvcConfig(FlaskForm):
     cosmos_db = StringField('CosmosDB Name (lowercase, no spaces)', validators=[DataRequired()])
     cosmos_uri = StringField('CosmosDB URI', validators=[DataRequired()])
     cosmos_key = StringField('CosmosDB Key', validators=[DataRequired()])
+    store_conn_str = StringField('Blob Connection String', validators=[DataRequired()])
+    container_name = StringField('Blob Container Name', validators=[DataRequired()])
     submit = SubmitField('Save Config')
 
 class TwinConfig(FlaskForm):
@@ -82,30 +87,8 @@ class TwinConfig(FlaskForm):
     prob_thres = StringField('Probability Threshold* (i.e. .65)*', validators=[DataRequired()])
     iou_thres = StringField('IOU Threshold* (i.e. .45, only applies to obj det or mask)*', validators=[DataRequired()])
     retrain_interval = StringField('Retraining Interval (i.e. 500)*', validators=[DataRequired()])
-    # mssql_db = StringField('MS SQL Database Name*', validators=[DataRequired()], default="DefectDB")
-    # mssql_pwd = StringField('MS SQL Edge Password*', validators=[DataRequired()], default = "Password123")
-    # camera_gvsp_allied = BooleanField('Camera Type - Allied GVSP')
-    # camera_gvsp_basler = BooleanField('Camera Type - Basler GVSP')
-    # camera_rtsp = BooleanField('Camera Type - RTSP')
-    # camera_file = BooleanField('Camera Type - File Upload', default=True)
-    
-    
-    # model_acv_ocr = BooleanField('Model: Azure Computer Vision OCR')
-    
-    # model_acv = BooleanField('Model: Azure Custom Vision ONNX Export')
-    # model_yolov5 = BooleanField('Model: Azure AutoML YOLOv5 ONNX Export')
-    # model_f_rcnn = BooleanField('Model: Azure AutoML Faster RCNN ONNX Export')
-    # model_m_rcnn = BooleanField('Model: Azure AutoML Mask RCNN ONNX Export')
-    # model_class_multi_label = BooleanField('Model: Multi-Label Classification')
-    # model_class_multi_class = BooleanField('Model: Multi-Class Classification')
-    
     store_raw_frames = BooleanField('Store Raw Frames in Azure')
     store_all_inferences = BooleanField('Store All Inferences')
-    # secondary_model = BooleanField('Secondary Model? (Same DIM, Probability & IOU)')
-    # secondary_model_ocr = BooleanField('Secondary Model: Azure Computer Vision OCR?')
-    # secondary_model_ocr_uri = StringField('Secondary Model: Azure Computer Vision OCR URI (not active)')
-    # secondary_model_name = StringField('SecondaryModel Name (not active)', default="none")
-    # secondary_model_version = StringField('Model Version (not active)', default='1')
     submit = SubmitField('Save Twin')
 
 def read_config(config):
@@ -182,7 +165,9 @@ def svc_config():
             hub_own_str = config["hub_own_str"],
             cosmos_db = config["cosmos_db"],
             cosmos_uri = config["cosmos_uri"],
-            cosmos_key = config["cosmos_key"]
+            cosmos_key = config["cosmos_key"],
+            store_conn_str = config["store_conn_str"],
+            container_name = config["container_name"],
         )
         message = "Edit Service Configuration"
 
@@ -193,6 +178,8 @@ def svc_config():
         cosmos_db = config["cosmos_db"]
         cosmos_uri = config["cosmos_uri"]
         cosmos_key = config["cosmos_key"]
+        store_conn_str = config["store_conn_str"]
+        container_name = config["container_name"]
 
         config_path = os.path.join(pkl_path, config_name)
         os.remove(config_path)
@@ -210,6 +197,8 @@ def svc_config():
         cosmos_db = form.cosmos_db.data
         cosmos_uri = form.cosmos_uri.data
         cosmos_key = form.cosmos_key.data
+        store_conn_str = form.store_conn_str.data
+        container_name = form.container_name.data
 
         svc_cfg_dict = {
             "hub_name": hub_name,
@@ -217,6 +206,8 @@ def svc_config():
             "cosmos_db": cosmos_db,
             "cosmos_uri": cosmos_uri,
             "cosmos_key": cosmos_key,
+            "store_conn_str": store_conn_str,
+            "container_name": container_name,
         }
         config_write = open(f"{pkl_path}{hub_name}.pkl", "wb")
         pickle.dump(svc_cfg_dict, config_write)
@@ -390,6 +381,11 @@ def internal_server_error(e):
 
 # keep this as is
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--blob-string',
+                        help='Add blob connection string')
+    parser.add_argument('-container-name',
+                        help='Add container name')
 
     # run locally
     # app.run(host='127.0.0.1', port=22000) or

@@ -99,8 +99,7 @@
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
                     "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Camera_1:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Camera_1:/config",
-                    "/home/edge_assets/debug/Mfg_Vision_CIS_Camera_1:/debug"
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Camera_1:/config"
                   ],
                   "Mounts": [
                     {
@@ -435,6 +434,9 @@
             "env": {
               "STORE_CONN_STR": {
                 "value": "${STORAGE_CONN_STR}"
+              },
+              "BLOB_LOCAL_AZURE_FILE_CONTAINER": {
+                "value": "model-sync"
               }
             }
           },
