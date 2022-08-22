@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 import pickle
@@ -380,6 +381,11 @@ def internal_server_error(e):
 
 # keep this as is
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--blob-string',
+                        help='Add blob connection string')
+    parser.add_argument('-container-name',
+                        help='Add container name')
 
     # run locally
     # app.run(host='127.0.0.1', port=22000) or
