@@ -398,7 +398,6 @@
                 "value": "${MSSQL_SA_PASSWORD}"
               }
             }
-            }
           },
           "Mfg_Vision_Twin_Configuration_Tool": {
             "version": "1.0",
