@@ -20,7 +20,6 @@
         },
         "systemModules": {
           "edgeAgent": {
-            "startupOrder": 0,
             "type": "docker",
             "settings": {
               "image": "mcr.microsoft.com/azureiotedge-agent:1.2.10-linux-amd64",
@@ -39,7 +38,6 @@
             }
           },
           "edgeHub": {
-            "startupOrder": 1,
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
@@ -79,7 +77,6 @@
         },
         "modules": {
           "Mfg_Vision_CIS_Modular_Camera_1": {
-            "startupOrder": 6,
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -113,7 +110,6 @@
             }
           },
           "Mfg_Vision_CIS_Monolithic_Camera_1": {
-            "startupOrder": 7,
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -159,7 +155,6 @@
             }
           },
           "Mfg_Vision_Model_Sync": {
-            "startupOrder": 2,
             "settings": {
               "image": "${MODULES.Mfg_Vision_Model_Sync}",
               "createOptions": {
@@ -187,7 +182,6 @@
             "restartPolicy": "always"
           },
           "Mfg_Vision_Capture_Repo": {
-            "startupOrder": 3,
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -211,7 +205,6 @@
             }
           },
           "Mfg_Vision_Inference_Repo": {
-            "startupOrder": 4,
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -441,7 +434,6 @@
             }
           },
           "AzureSQLEdge": {
-            "startupOrder": 5,
             "version": "1.0",
             "type": "docker",
             "status": "running",
