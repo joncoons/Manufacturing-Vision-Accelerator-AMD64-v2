@@ -1,5 +1,5 @@
 {
-  "$schema-version": "0.0.1",
+  "$schema-version": "0.1.378.0",
   "description": "",
   "image": {
     "repository": "${ACR_ADDR}/mfg_vision_dashboard_custom",

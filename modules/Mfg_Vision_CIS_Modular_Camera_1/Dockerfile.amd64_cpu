@@ -61,7 +61,7 @@ RUN python3.7 -m pip install onnx==1.8.1
 # Comment out if not using YOLOv5->ONNX
 RUN python3.7 -m pip install torch==1.8.1 torchvision==0.9.1
 RUN python3.7 -m pip install pandas tqdm PyYAML
-RUN python3.7 -m pip install scipy seaborn requests
+RUN python3.7 -m pip install scipy requests
 RUN python3.7 -m pip install pybind11 pytest protobuf
 RUN python3.7 -m pip install shapely
 
