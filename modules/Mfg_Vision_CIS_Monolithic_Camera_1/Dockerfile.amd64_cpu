@@ -1,4 +1,4 @@
-FROM visionaccelerator.azurecr.io/edge_base/amd64/python:3.7-slim-buster
+FROM python:3.7-slim-buster
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Create folder structure for container
@@ -63,7 +63,7 @@ RUN python3.7 -m pip install torch==1.8.1 torchvision==0.9.1
 RUN python3.7 -m pip install pandas tqdm PyYAML
 RUN python3.7 -m pip install scipy seaborn requests
 RUN python3.7 -m pip install pybind11 pytest protobuf
-RUN python3.7 -m pip install objdict shapely
+RUN python3.7 -m pip install shapely
 
 # Comment out if not using Basler
 RUN python3.7 -m pip install pypylon

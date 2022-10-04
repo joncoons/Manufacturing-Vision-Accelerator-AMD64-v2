@@ -1,7 +1,3 @@
-# Copyright (c) Microsoft. All rights reserved.
-# Licensed under the MIT license. See LICENSE file in the project root for
-# full license information.
-
 import time
 import os
 import sys
@@ -41,24 +37,7 @@ def main():
                 if blob_lastmod > local_lastmod:
                     data = container_client.download_blob(blob['name']).readall()
                     with open(local_path, 'wb') as file:
-                        file.write(data)
-                    
-            # else:
-            #     for filepath in pathlib.Path(local_base_dir).rglob('*'):
-            #         file_path_list = filepath.parts
-            #         if filepath.is_file():
-            #             print(filepath.parts)
-            #             # print(os.path.basename(local_base_dir))
-            #             file_lastmod = datetime.fromtimestamp(os.stat(filepath).st_mtime, tz=timezone.utc)
-            #         #     if file_lastmod > blob_lastmod:
-                    #         container_client.upload_blob(filepath.name, filepath.open('rb'))
-                    #         print(f"Uploaded {filepath.name}")
-                    #         blob_lastmod = file_lastmod
-                    #         break
-
-                
-
-            
+                        file.write(data)               
 
         time.sleep(60)
 

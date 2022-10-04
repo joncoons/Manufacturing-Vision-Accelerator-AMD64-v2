@@ -22,7 +22,7 @@
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.2.10-linux-amd64",
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.4.0-linux-amd64",
               "createOptions": {
                 "HostConfig": {
                   "Binds": [
@@ -42,7 +42,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.2.10-linux-amd64",
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.4.0-linux-amd64",
               "createOptions": {
                 "HostConfig": {
                   "Binds": [
@@ -95,8 +95,8 @@
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Camera_1:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Camera_1:/config"
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_1:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_1:/config"
                   ],
                   "Mounts": [
                     {
@@ -130,8 +130,8 @@
                     "/home/edge_assets/model_sync:/model_volume",
                     "/home/edge_assets/inference_volume:/app/inference",
                     "/home/edge_assets/capture_volume:/app/capture",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Camera_2:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Camera_2:/config"
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_1:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_1:/config"
                   ],
                   "Mounts": [
                     {
@@ -300,7 +300,7 @@
           },
           "Mfg_Vision_File_Download_Utility": {
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/core_file_downloader:0.1.82.0-amd64",
+              "image": "${MODULES.Mfg_Vision_File_Download_Utility}",
               "createOptions": {
                 "HostConfig": {
                   "Binds": [
@@ -359,7 +359,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_dashboard_custom:0.1.82.0-amd64",
+              "image": "${MODULES.Mfg_Vision_Dashboard_Custom}",
               "createOptions": {
                 "NetworkingConfig": {
                   "EndpointsConfig": {
@@ -428,7 +428,7 @@
               "STORE_CONN_STR": {
                 "value": "${STORAGE_CONN_STR}"
               },
-              "BLOB_LOCAL_AZURE_FILE_CONTAINER": {
+              "BLOB_AZURE_MODEL_CONTAINER": {
                 "value": "model-sync"
               }
             }

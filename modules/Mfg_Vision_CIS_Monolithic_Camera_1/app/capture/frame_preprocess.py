@@ -27,7 +27,7 @@ def frame_resize(img, target, model):
             img_data = None
         assert batch_size == img_data.shape[0]
 
-        return img_data, pad_list
+        return img_data, ratio, pad_list
 
     elif model in ('acv', 'classification'):
         padColor = [0,0,0]

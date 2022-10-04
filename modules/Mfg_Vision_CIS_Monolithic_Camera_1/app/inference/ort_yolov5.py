@@ -1,6 +1,5 @@
 import numpy as np
 import onnxruntime as ort
-from objdict import ObjDict
 import time
 import os
 from datetime import datetime
