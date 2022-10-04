@@ -4,14 +4,14 @@ trigger:
     include: 
       - master
 
-# pool:
-#   vmImage: ubuntu-latest
+pool:
+  vmImage: ubuntu-latest
 
 # self-hosted agent, if exists
-pool:
-  name: Default
-  demands:
-   - agent.name -equals ubuntu-18-self-hosted-vm
+# pool:
+#   name: Default
+#   demands:
+#    - agent.name -equals ubuntu-18-self-hosted-vm
    
 pr:
   autoCancel: true
