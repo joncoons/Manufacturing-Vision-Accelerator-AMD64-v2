@@ -30,7 +30,7 @@ stages:
           - task: gittools.gittools.setup-gitversion-task.gitversion/setup@0
             displayName: 'Set GitVersion assembly'
             inputs:
-              versionSpec: '5.x.x'
+              versionSpec: '5.10.1'
               updateAssemblyInfo: true
 
           - task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
