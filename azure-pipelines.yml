@@ -38,7 +38,7 @@ stages:
             inputs:
               targetPath: '$(System.DefaultWorkingDirectory)'
               useConfigFile: true
-              configFilePath: '$(System.DefaultWorkingDirectory)GitVersion.yml'
+              configFilePath: '$(System.DefaultWorkingDirectory)/GitVersion.yml'
 
           # - task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
           #   displayName: 'Calculate version number'  
