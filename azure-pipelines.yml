@@ -34,9 +34,16 @@ stages:
               updateAssemblyInfo: true
 
           - task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
-            displayName: 'Calculate version number'  
+            displayName: 'Calculate version number'
             inputs:
               targetPath: '$(System.DefaultWorkingDirectory)'
+              useConfigFile: true
+              configFilePath: '$(System.DefaultWorkingDirectory)GitVersion.yml'
+
+          # - task: gittools.gittools.execute-gitversion-task.gitversion/execute@0
+          #   displayName: 'Calculate version number'  
+          #   inputs:
+          #     targetPath: '$(System.DefaultWorkingDirectory)'
           
           - bash: sudo docker login $(ACR_ADDR) -u $(ACR_UNAME) -p $(ACR_PWD)
             displayName: 'Log into ACR' 
