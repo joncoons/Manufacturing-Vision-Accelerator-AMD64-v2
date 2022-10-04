@@ -4,20 +4,20 @@ trigger:
     include: 
       - master
 
-pool:
-  vmImage: ubuntu-latest
+# pool:
+#   vmImage: ubuntu-latest
 
 # self-hosted agent, if exists
-# pool:
-#   name: Default
-#   demands:
-#    - agent.name -equals AIoT-T4-GPU-Edge
+pool:
+  name: Default
+  demands:
+   - agent.name -equals ubuntu-18-self-hosted-vm
    
 pr:
   autoCancel: true
   
 variables:
-  - group: "Vision_Accelerator_AMD"
+  - group: "Vision_SA_v2"
  
 stages:
   - stage: Build
@@ -84,5 +84,5 @@ stages:
           # Your automatic configuration name, if used in IoT Hub
           # deploymentid: EDGE_OF_AI
           # priority: '10'
-          deviceOption: 'Single Device'
-          deviceId: 'Machnie_Vision_Demo_AMD64'
+          # deviceOption: 'Single Device'
+          deviceId: 'Edge_of_AI_AMD_v2'
