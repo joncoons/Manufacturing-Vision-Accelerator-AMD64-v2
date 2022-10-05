@@ -52,8 +52,9 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_cis_modular_camera_1:0.1.378.0-amd64",
-              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"IpcMode\":\"host\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\",\"/home/edge_assets/model_sync:/model_volume\",\"/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_1:/image_sink_volume\",\"/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_1:/config\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images_volume\"}]}}"
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_cis_modular_camera_1:0.1.379.0-amd64",
+              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"IpcMode\":\"host\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\",\"/home/edge_assets/model_sync:/model_volume\",\"/home/edge_assets/inference_volume:/app/inference\",\"/home/edge_assets/capture_volume:/app/capture\",\"/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_1:/image_sink_volume\",\"/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_1:/config\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_",
+              "createOptions01": "volume\",\"Target\":\"/var/opt/images_volume\"}]}}"
             }
           },
           "Mfg_Vision_CIS_Monolithic_Camera_1": {
@@ -62,14 +63,14 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_cis_monolithic_camera_1:0.1.378.0-amd64",
-              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"IpcMode\":\"host\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\",\"/home/edge_assets/model_sync:/model_volume\",\"/home/edge_assets/inference_volume:/app/inference\",\"/home/edge_assets/capture_volume:/app/capture\",\"/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_1:/image_sink_volume\",\"/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_1:/config\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"i",
-              "createOptions01": "mages_volume\",\"Target\":\"/var/opt/images_volume\"},{\"Type\":\"volume\",\"Source\":\"inference_volume\",\"Target\":\"/var/opt/inference_volume\"},{\"Type\":\"volume\",\"Source\":\"capture_volume\",\"Target\":\"/var/opt/capture_volume\"}]}}"
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_cis_monolithic_camera_1:0.1.379.0-amd64",
+              "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"IpcMode\":\"host\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\",\"/home/edge_assets/model_sync:/model_volume\",\"/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_1:/image_sink_volume\",\"/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_1:/config\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images_volume\"},{\"Type\":\"volume\",\"Source\":\"inference_volume\",\"Targe",
+              "createOptions01": "t\":\"/var/opt/inference_volume\"},{\"Type\":\"volume\",\"Source\":\"capture_volume\",\"Target\":\"/var/opt/capture_volume\"}]}}"
             }
           },
           "Mfg_Vision_Model_Sync": {
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_model_sync:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_model_sync:0.1.379.0-amd64",
               "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/model_sync:/models\"]}}"
             },
             "type": "docker",
@@ -94,7 +95,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_capture_repo:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_capture_repo:0.1.379.0-amd64",
               "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/capture_volume:/capture_volume\"]},\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"capture_volume\",\"Target\":\"/var/opt/capture_volume\"}]}"
             }
           },
@@ -104,7 +105,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_inference_repo:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_inference_repo:0.1.379.0-amd64",
               "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/inference_volume:/inference_volume\"]},\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"inference_volume\",\"Target\":\"/var/opt/inference_volume\"}]}"
             }
           },
@@ -114,7 +115,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_image_upload:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_image_upload:0.1.379.0-amd64",
               "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images\"}]}}"
             },
             "env": {
@@ -132,7 +133,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_file_cleanup:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_file_cleanup:0.1.379.0-amd64",
               "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/images_volume\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images_volume\"}]}}"
             },
             "env": {
@@ -143,7 +144,7 @@
           },
           "Mfg_Vision_File_Download_Utility": {
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/core_file_downloader:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/core_file_downloader:0.1.379.0-amd64",
               "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/file_download:/files\"]}}"
             },
             "type": "docker",
@@ -164,7 +165,7 @@
           },
           "Mfg_Vision_File_Upload_Utility": {
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/core_file_uploader:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/core_file_uploader:0.1.379.0-amd64",
               "createOptions": "{\"HostConfig\":{\"Binds\":[\"/home/edge_assets/file_upload:/files\"]}}"
             },
             "type": "docker",
@@ -189,7 +190,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_dashboard_custom:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_dashboard_custom:0.1.379.0-amd64",
               "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"PortBindings\":{\"80/tcp\":[{\"HostPort\":\"22000\"}]},\"IpcMode\":\"host\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/images_volume:/app/static/images\"],\"Mounts\":[{\"Type\":\"volume\",\"Source\":\"images_volume\",\"Target\":\"/var/opt/images_volume\"}]}}"
             },
             "env": {
@@ -204,7 +205,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_twin_configuration_tool:0.1.378.0-amd64",
+              "image": "aiotdevopsacr.azurecr.io/mfg_vision_twin_configuration_tool:0.1.379.0-amd64",
               "createOptions": "{\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"PortBindings\":{\"22000/tcp\":[{\"HostPort\":\"22000\"}]},\"IpcMode\":\"host\",\"NetworkMode\":\"host\",\"Binds\":[\"/home/edge_assets/Manufacturing_Vision_CIS_config:/config\"]}}"
             },
             "env": {

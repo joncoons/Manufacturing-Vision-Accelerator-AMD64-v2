@@ -396,26 +396,22 @@ class Cam_File_Sink():
                                 }
                             self.send_to_upload(json.dumps(annotated_msg))
 
-                        else:
-                            if self.storeAllInferences:
-                                annotatedName = frameFileName
-                                annotatedPath = frameFilePath
-       
-
-                        inference_obj = {
-                            'model_name': self.model_name,
-                            'object_detected': 0,
-                            'camera_id': self.camID,
-                            'camera_name': f"{self.camLocation}-{self.camPosition}",
-                            'raw_image_name': frameFileName,
-                            'raw_image_local_path': frameFilePath,
-                            'annotated_image_name': annotatedName,
-                            'annotated_image_path': annotatedPath,
-                            'inferencing_time': t_infer,
-                            'created': created,
-                            'unique_id': unique_id,
-                            'detected_objects': predictions
-                            }
+                        elif self.storeAllInferences:
+                            print("No object detected.")
+                            inference_obj = {
+                                'model_name': self.model_name,
+                                'object_detected': 0,
+                                'camera_id': self.camID,
+                                'camera_name': f"{self.camLocation}-{self.camPosition}",
+                                'raw_image_name': frameFileName,
+                                'raw_image_local_path': frameFilePath,
+                                'annotated_image_name': frameFileName,
+                                'annotated_image_path': frameFilePath,
+                                'inferencing_time': t_infer,
+                                'created': created,
+                                'unique_id': unique_id,
+                                'detected_objects': predictions
+                                }
 
                         sql_insert = InsertInference(Cam_File_Sink.sql_state, detection_count, inference_obj)
                         Cam_File_Sink.sql_state = sql_insert                      
@@ -519,35 +515,35 @@ class Cam_File_Sink():
                         self.send_to_upstream(json.dumps(inference_obj))
 
 
-                    print(f"Frame count = {self.frameCount}")
-                    
-                    self.frameRateCount = 0
-                    FrameSave(frameFilePath, frame_optimized)
-
-                    if (self.storeRawFrames == True):
-                        frame_msg = {
-                        'fs_name': "images-frame",
-                        'img_name': frameFileName,
-                        'location': self.camLocation,
-                        'position': self.camPosition,
-                        'path': frameFilePath
-                        }
-                        self.send_to_upload(json.dumps(frame_msg))
-
-                    if (self.frameCount*(self.inferenceFPS/self.camFPS)) % self.retrainInterval == 0:
-                        FrameSave(retrainFilePath, frame)
-                        retrain_msg = {
-                        'fs_name': "images-retraining",
-                        'img_name': retrainFileName,
-                        'location': self.camLocation,
-                        'position': self.camPosition,
-                        'path': retrainFilePath
-                        }
-                        self.send_to_upload(json.dumps(retrain_msg))
+                print(f"Frame count = {self.frameCount}")
                 
-                    delete_img = os.remove(img_path)
-                    if delete_img:
-                        print(f"Deleted image: {filename}")
+                self.frameRateCount = 0
+                FrameSave(frameFilePath, frame_optimized)
+
+                if (self.storeRawFrames == True):
+                    frame_msg = {
+                    'fs_name': "images-frame",
+                    'img_name': frameFileName,
+                    'location': self.camLocation,
+                    'position': self.camPosition,
+                    'path': frameFilePath
+                    }
+                    self.send_to_upload(json.dumps(frame_msg))
+
+                if (self.frameCount*(self.inferenceFPS/self.camFPS)) % self.retrainInterval == 0:
+                    FrameSave(retrainFilePath, frame)
+                    retrain_msg = {
+                    'fs_name': "images-retraining",
+                    'img_name': retrainFileName,
+                    'location': self.camLocation,
+                    'position': self.camPosition,
+                    'path': retrainFilePath
+                    }
+                    self.send_to_upload(json.dumps(retrain_msg))
+            
+                delete_img = os.remove(img_path)
+                if delete_img:
+                    print(f"Deleted image: {filename}")
                 
                 self.cycle_end = time.time()
                 self.t_full_cycle = (self.cycle_end - self.cycle_begin)*1000

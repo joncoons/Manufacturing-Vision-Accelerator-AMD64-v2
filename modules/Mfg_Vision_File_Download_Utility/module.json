@@ -4,7 +4,7 @@
   "image": {
     "repository": "${ACR_ADDR}/core_file_downloader",
     "tag": {
-      "version": "0.1.378.0",
+      "version": "${CONTAINER_VERSION_TAG}",
       "platforms": {
         "amd64": "./Dockerfile.amd64"
       }

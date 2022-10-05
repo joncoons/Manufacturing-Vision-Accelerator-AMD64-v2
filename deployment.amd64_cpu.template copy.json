@@ -95,8 +95,6 @@
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/inference_volume:/app/inference",
-                    "/home/edge_assets/capture_volume:/app/capture",
                     "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_1:/image_sink_volume",
                     "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_1:/config"
                   ],
@@ -130,6 +128,8 @@
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/inference_volume:/app/inference",
+                    "/home/edge_assets/capture_volume:/app/capture",
                     "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_1:/image_sink_volume",
                     "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_1:/config"
                   ],
