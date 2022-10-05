@@ -169,10 +169,10 @@ class Cam_File_Sink():
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                         annotated_frame = frame_optimized.copy()
-                        annotated_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+                        # annotated_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
                     elif self.modelClassMultiClass:
                         model_type = 'Multi-Class Classification'
-                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                         frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
                         from inference.ort_class_multi_class import predict_class_multi_class
                         result = predict_class_multi_class(frame_optimized)
@@ -225,7 +225,7 @@ class Cam_File_Sink():
                                 'detected_objects': result["analyzeResult"]["readResults"]
                             }
 
-                            sql_insert = InsertInference(Cam_File_Sink.sql_state, detection_count, inference_obj)
+                            sql_insert = InsertInference(Cam_File_Sink.sql_state, detection_count, ocr_inference_obj)
                             Cam_File_Sink.sql_state = sql_insert                      
                             self.send_to_upstream(json.dumps(ocr_inference_obj))
 
@@ -249,7 +249,7 @@ class Cam_File_Sink():
                             'detected_objects': predictions
                             }
 
-                            sql_insert = InsertInference(self.SqlDb, self.SqlPwd, detection_count, inference_obj)           
+                            sql_insert = InsertInference(Cam_File_Sink.sql_state, detection_count, inference_obj)        
                             self.send_to_upstream(json.dumps(inference_obj))
 
                             # For establishing boundary area - comment out if not used
@@ -553,6 +553,23 @@ class Cam_File_Sink():
         file_extensions = set(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'tif'])
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in file_extensions
 
+    def get_response(self, url: str) -> Optional[Any]:
+        """Sends a GET request to the URL. Returns None if the endpoint
+        reports the job is still running. Else, returns the response as JSON.
+
+        Args:
+            url (str): Endpoint to get response from.
+
+        Returns:
+            Optional[Any]: JSON response from the endpoint. None if the job is still running.
+        """
+        response = requests.get(url)
+        if response.json()["status"] == "running":
+            return None
+        else:
+            # print(response.json())
+            return response.json()
+    
     def __convertStringToBool(self, env: str) -> bool:
         if env in ['true', 'True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes']:
             return True

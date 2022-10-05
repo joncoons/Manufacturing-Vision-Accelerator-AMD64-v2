@@ -100,13 +100,14 @@ class ONNXRuntimeObjectDetection():
 
         def _get_prediction(boxes, labels, scores, image_shape, classes):
             raw_pred = []
-            for box, label_index, score in zip(boxes, labels, scores):
+            for box, label_index, score in zip(boxes, scores, labels):
                 box_dims = _get_box_dims(image_shape, box)
 
                 # box_record = {'box': box_dims,
                 #       'label': classes[label_index],
                 #       'score': score.item()}
 
+                print(f'box: {box_dims}, label: {label_index.item()}, score: {score.item()}')
                 prediction = {  
                     'probability': score.item(),
                     'labelId': label_index.item(),
@@ -154,7 +155,7 @@ def initialize_retinanet(model_path, labels_path, target_dim, target_prob, targe
     ort_model = ONNXRuntimeObjectDetection(model_path, classes, target_dim, target_prob, target_iou)
     print('Success!')
 
-def predict_faster_rcnn(image):
+def predict_retinanet(image):
     log_msg('Predicting image')
     frame = np.asarray(image)
     frame = frame.astype(np.float32)

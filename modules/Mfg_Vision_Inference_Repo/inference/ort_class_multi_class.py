@@ -6,7 +6,18 @@ import onnxruntime as ort
 import time
 import os
 from datetime import datetime
+# from inference.utils.general import non_max_suppression
 
+# providers = [
+#     ('CUDAExecutionProvider', {
+#         'device_id': 0,
+#         'arena_extend_strategy': 'kSameAsRequested ',
+#         'gpu_mem_limit': 2 * 1024 * 1024 * 1024,
+#         'cudnn_conv_algo_search': 'DEFAULT',
+#         'do_copy_in_default_stream': True,
+#     }),
+#     'CPUExecutionProvider',
+# ]
 providers = [
     'CUDAExecutionProvider',
     'CPUExecutionProvider',
@@ -51,7 +62,8 @@ class ONNXRuntimeClassificationMultiClass():
              
     def predict(self, pp_image, image):
         inputs = pp_image
-
+        # if self.is_fp16:
+        #     inputs = inputs.astype(np.float16)
         output_names = [output.name for output in self.sess_output]
         print(output_names)
         outputs = self.session.run(output_names=output_names, input_feed={self.sess_input[0].name: inputs})

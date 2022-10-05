@@ -135,6 +135,14 @@ class RTSP_Camera():
                             predictions = result['predictions']
                             frame_resized = frame_optimized.copy()
                             annotated_frame = frame_optimized.copy()
+                        elif self.modelRetinanet:
+                            model_type = 'Object Detection'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "retinanet")
+                            from inference.ort_retinanet import predict_retinanet
+                            result = predict_retinanet(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                            annotated_frame = frame_optimized.copy()
                         elif self.modelMaskRCNN:
                             model_type = 'Instance Segmentation'
                             frame_optimized = frame_resize(frame, self.targetDim, model = "mask_rcnn")
@@ -162,9 +170,6 @@ class RTSP_Camera():
                         else:
                             print("No model selected")
                             result = None
-                        
-                        if result is not None:
-                            print(json.dumps(result))
 
                         now = datetime.now()
                         created = now.isoformat()
@@ -188,29 +193,30 @@ class RTSP_Camera():
 
                         if ((model_type == 'OCR') and (self.modelAcvOcrSecondary == False)):
 
-                                print(f'[{datetime.now()}] Results: {result["analyzeResult"]["readResults"]}')
+                            print(f'[{datetime.now()}] Results: {result["analyzeResult"]["readResults"]}')
 
-                                # Add additional logic to extract desired text from OCR if needed and/or annotate frame with
-                                # the bounding box of the text scene.
+                            # Add additional logic to extract desired text from OCR if needed and/or annotate frame with
+                            # the bounding box of the text scene.
 
-                                ocr_inference_obj = {
-                                    'model_name': self.model_name,
-                                    'object_detected': obj_det_val,
-                                    'camera_id': self.camID,
-                                    'camera_name': f"{self.camLocation}-{self.camPosition}",
-                                    'raw_image_name': frameFileName,
-                                    'raw_image_local_path': frameFilePath,
-                                    'annotated_image_name': frameFileName,
-                                    'annotated_image_path': frameFilePath,
-                                    'inferencing_time': t_infer,
-                                    'created': created,
-                                    'unique_id': unique_id,
-                                    'detected_objects': result["analyzeResult"]["readResults"]
+                            ocr_inference_obj = {
+                                'model_name': self.model_name,
+                                'object_detected': 1,
+                                'camera_id': self.camID,
+                                'camera_name': f"{self.camLocation}-{self.camPosition}",
+                                'raw_image_name': frameFileName,
+                                'raw_image_local_path': frameFilePath,
+                                'annotated_image_name': frameFileName,
+                                'annotated_image_path': frameFilePath,
+                                'inferencing_time': t_infer,
+                                'created': created,
+                                'unique_id': unique_id,
+                                'detected_objects': result["analyzeResult"]["readResults"]
                                 }
 
-                                sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, inference_obj)
-                                RTSP_Camera.sql_state = sql_insert                      
-                                self.send_to_upstream(json.dumps(ocr_inference_obj))
+
+                            sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, ocr_inference_obj)
+                            RTSP_Camera.sql_state = sql_insert                      
+                            self.send_to_upstream(json.dumps(ocr_inference_obj))
 
                         elif model_type == 'Object Detection':
                             # detection_count = len(result['predictions'][0])
@@ -234,7 +240,7 @@ class RTSP_Camera():
 
                                 sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, inference_obj)
                                 RTSP_Camera.sql_state = sql_insert                      
-                                self.send_to_upstream(json.dumps(ocr_inference_obj))
+                                self.send_to_upstream(json.dumps(inference_obj))
 
                                 # For establishing boundary area - comment out if not used
                                 boundary_active = self.__convertStringToBool(os.environ['BOUNDARY_DETECTION'])
@@ -380,31 +386,26 @@ class RTSP_Camera():
                                     }
                                 self.send_to_upload(json.dumps(annotated_msg))
 
-                            else:
-                                if self.storeAllInferences:
-                                    obj_det_val = 0
-                                    annotatedName = frameFileName
-                                    annotatedPath = frameFilePath
-        
-
-                            inference_obj = {
-                                'model_name': self.model_name,
-                                'object_detected': obj_det_val,
-                                'camera_id': self.camID,
-                                'camera_name': f"{self.camLocation}-{self.camPosition}",
-                                'raw_image_name': frameFileName,
-                                'raw_image_local_path': frameFilePath,
-                                'annotated_image_name': annotatedName,
-                                'annotated_image_path': annotatedPath,
-                                'inferencing_time': t_infer,
-                                'created': created,
-                                'unique_id': unique_id,
-                                'detected_objects': predictions
-                                }
+                            elif self.storeAllInferences:
+                                print("No object detected.")
+                                inference_obj = {
+                                    'model_name': self.model_name,
+                                    'object_detected': 0,
+                                    'camera_id': self.camID,
+                                    'camera_name': f"{self.camLocation}-{self.camPosition}",
+                                    'raw_image_name': frameFileName,
+                                    'raw_image_local_path': frameFilePath,
+                                    'annotated_image_name': frameFileName,
+                                    'annotated_image_path': frameFilePath,
+                                    'inferencing_time': t_infer,
+                                    'created': created,
+                                    'unique_id': unique_id,
+                                    'detected_objects': predictions
+                                    }
 
                             sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, inference_obj)
                             RTSP_Camera.sql_state = sql_insert                      
-                            self.send_to_upstream(json.dumps(ocr_inference_obj))
+                            self.send_to_upstream(json.dumps(inference_obj))
 
                         elif model_type == 'Instance Segmentation':
                             detection_count = len(result['predictions'])
@@ -430,7 +431,7 @@ class RTSP_Camera():
 
                                 sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, inference_obj)
                                 RTSP_Camera.sql_state = sql_insert                      
-                                self.send_to_upstream(json.dumps(ocr_inference_obj))
+                                self.send_to_upstream(json.dumps(inference_obj))
 
                             #   Frame upload
                                 annotated_msg = {
@@ -461,7 +462,7 @@ class RTSP_Camera():
     
                             sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, inference_obj)
                             RTSP_Camera.sql_state = sql_insert                      
-                            self.send_to_upstream(json.dumps(ocr_inference_obj))           
+                            self.send_to_upstream(json.dumps(inference_obj))           
                         
                         elif model_type == 'Multi-Label Classification' or model_type == 'Multi-Label Classification':
                             detection_count = len(result['predictions'])
@@ -502,7 +503,7 @@ class RTSP_Camera():
 
                             sql_insert = InsertInference(RTSP_Camera.sql_state, detection_count, inference_obj)
                             RTSP_Camera.sql_state = sql_insert                      
-                            self.send_to_upstream(json.dumps(ocr_inference_obj))
+                            self.send_to_upstream(json.dumps(inference_obj))
 
                         print(f"Frame count = {self.frameCount}")
 

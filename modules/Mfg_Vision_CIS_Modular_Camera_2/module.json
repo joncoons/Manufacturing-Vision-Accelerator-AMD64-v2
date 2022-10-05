@@ -1,0 +1,16 @@
+{
+  "$schema-version": "0.0.1",
+  "description": "",
+  "image": {
+    "repository": "${ACR_ADDR}/mfg_vision_cis_modular_camera_2",
+    "tag": {
+      "version": "${CONTAINER_VERSION_TAG}",
+      "platforms": {
+        "amd64": "./Dockerfile.amd64_cpu"
+      }
+    },
+    "buildOptions": [],
+    "contextPath": "./"
+  },
+  "language": "python"
+}
