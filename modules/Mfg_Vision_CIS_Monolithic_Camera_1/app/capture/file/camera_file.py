@@ -85,44 +85,25 @@ class Cam_File_Sink():
                     img_path = os.path.join(("/image_sink_volume"), filename)
                     frame = cv2.imread(img_path)
                     h, w = frame.shape[:2]
-                    # frame = np.asarray(frame)
                     if ((self.modelAcvOcr == True) and (self.modelAcvOcrSecondary != True)):
-                        model_type = 'OCR'
                         from inference.ocr_read import _process_frame_for_ocr
-                        ocr_frame = frame.copy()
-                        ocr_frame = cv2.cvtColor(ocr_frame, cv2.COLOR_BGR2GRAY) # convert to grayscale to reduce inference time
-                        
-                        # Optional crop to ROI
-                        # ocr_frame = ocr_frame[810:1080, 750:1020] # crop the OCR ROI if needed
-
-                        # Optional simple scaling to reduce image size with letterbox output:
-                        # bh, bw = ocr_frame.shape[:2]
-                        # bc_scale = .5
-                        # bhn, bwn = int(bh * bc_scale), int(bw * bc_scale)
-                        # if bhn > bwn:
-                        #     scale_size = 32 * round(bhn / 32)
-                        # else:
-                        #     scale_size = 32 * round(bwn / 32)
-                        # ocr_frame = frame_resize(ocr_frame, self.targetDim, model = "acv") # resize the frame to the target dimension in letterbox format
-
-
-                        encodedOCRFrame = cv2.imencode('.jpg', ocr_frame)[1].tobytes()
-                        ocr_result = _process_frame_for_ocr(encodedOCRFrame)
-
+                        model_type = 'OCR'
+                        frame_optimized = frame_resize(frame, self.targetDim, model = "ocr")
+                        encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
+                        result = _process_frame_for_ocr(encodedFrame)
                     elif self.modelAcvOD:
-                        model_type = 'Object Detection'
-                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "acv")
                         from inference.ort_acv_predict import predict_acv
+                        model_type = 'Object Detection'
+                        frame_optimized = frame_resize(frame, self.targetDim, model = "acv")
                         pil_frame = Image.fromarray(frame_optimized)
                         result = predict_acv(pil_frame)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                         annotated_frame = frame_optimized.copy()
                     elif self.modelYolov5:
+                        from inference.ort_yolov5 import predict_yolov5
                         model_type = 'Object Detection'
                         frame_optimized, ratio, pad_list = frame_resize(frame, self.targetDim, model = "yolov5")
-                        from inference.ort_yolov5 import predict_yolov5
                         result = predict_yolov5(frame_optimized, pad_list)
                         predictions = result['predictions'][0]
                         new_w = int(ratio[0]*w)
@@ -130,51 +111,39 @@ class Cam_File_Sink():
                         frame_resized = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
                         annotated_frame = frame_resized.copy()
                     elif self.modelFasterRCNN:
-                        model_type = 'Object Detection'
-                        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "faster_rcnn")
-                        pil_frame = Image.fromarray(frame_optimized)
-                        pil_frame = pil_frame.convert('RGB')
                         from inference.ort_faster_rcnn import predict_faster_rcnn
-                        result = predict_faster_rcnn(pil_frame)
+                        model_type = 'Object Detection'
+                        frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "faster_rcnn")
+                        result = predict_faster_rcnn(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                         annotated_frame = frame_optimized.copy()
                     elif self.modelRetinanet:
-                        model_type = 'Object Detection'
-                        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "retinanet")
-                        # pil_frame = Image.fromarray(frame_optimized)
-                        # pil_frame = pil_frame.convert('RGB')
                         from inference.ort_retinanet import predict_retinanet
+                        model_type = 'Object Detection'
+                        frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "retinanet")
                         result = predict_retinanet(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                         annotated_frame = frame_optimized.copy()    
                     elif self.modelMaskRCNN:
-                        model_type = 'Instance Segmentation'
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "mask_rcnn")
-                        pil_frame = Image.fromarray(frame_optimized)
-                        pil_frame = pil_frame.convert('RGB')
                         from inference.ort_mask_rcnn import predict_mask_rcnn
-                        result = predict_mask_rcnn(pil_frame)
+                        model_type = 'Instance Segmentation'
+                        frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
+                        result = predict_mask_rcnn(frame_optimized)
                         predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
                     elif self.modelClassMultiLabel:
+                        from inference.ort_class_multi_label import predict_class_multi_label
                         model_type = 'Multi-Label Classification'
                         frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
-                        from inference.ort_class_multi_label import predict_class_multi_label
                         result = predict_class_multi_label(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                         annotated_frame = frame_optimized.copy()
-                        # annotated_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
                     elif self.modelClassMultiClass:
-                        model_type = 'Multi-Class Classification'
-                        # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
                         from inference.ort_class_multi_class import predict_class_multi_class
+                        model_type = 'Multi-Class Classification'
+                        frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
                         result = predict_class_multi_class(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
@@ -517,7 +486,6 @@ class Cam_File_Sink():
 
                 print(f"Frame count = {self.frameCount}")
                 
-                self.frameRateCount = 0
                 FrameSave(frameFilePath, frame_optimized)
 
                 if (self.storeRawFrames == True):
@@ -552,23 +520,6 @@ class Cam_File_Sink():
     def check_extension(self, filename):
         file_extensions = set(['png', 'jpg', 'jpeg', 'bmp', 'tiff', 'tif'])
         return '.' in filename and filename.rsplit('.', 1)[1].lower() in file_extensions
-
-    def get_response(self, url: str) -> Optional[Any]:
-        """Sends a GET request to the URL. Returns None if the endpoint
-        reports the job is still running. Else, returns the response as JSON.
-
-        Args:
-            url (str): Endpoint to get response from.
-
-        Returns:
-            Optional[Any]: JSON response from the endpoint. None if the job is still running.
-        """
-        response = requests.get(url)
-        if response.json()["status"] == "running":
-            return None
-        else:
-            # print(response.json())
-            return response.json()
     
     def __convertStringToBool(self, env: str) -> bool:
         if env in ['true', 'True', 'TRUE', '1', 'y', 'YES', 'Y', 'Yes']:

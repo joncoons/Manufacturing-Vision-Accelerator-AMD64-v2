@@ -53,7 +53,7 @@ RUN apt update \
 
 # ONNX & ONNX runtime, OpenCV foundational packages
 RUN python3.7 -m pip install --upgrade pip wheel setuptools
-RUN python3.7 -m pip install cython numpy>=1.19.0 pillow onnxruntime==1.9.0 opencv-contrib-python-headless pyodbc azure-iot-device~=2.7.0
+RUN python3.7 -m pip install cython numpy>=1.19.0 pillow onnxruntime==1.8.0 opencv-contrib-python-headless~=4.5.5 pyodbc azure-iot-device~=2.7.0
 
 # Comment out if not using ACV->ONNX
 RUN python3.7 -m pip install onnx==1.8.1 
