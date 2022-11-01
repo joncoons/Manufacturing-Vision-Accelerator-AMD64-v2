@@ -217,32 +217,25 @@ class Allied_GVSP_Camera:
             self.cycle_begin = time.time()
             
             if ((self.modelAcvOcr == True) and (self.modelAcvOcrSecondary != True)):
+                from inference.ocr_read import _process_frame_for_ocr
                 model_type = 'OCR'
                 frame_optimized = frame_resize(frame, self.targetDim, model = "ocr")
-                headers = {'Content-Type': 'application/octet-stream'}
                 encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
-                try:
-                    ocr_response = requests.post(self.modelAcvOcrUri, headers = headers, data = encodedFrame)
-                    ocr_url = ocr_response.headers["Operation-Location"]
-                    result = None
-                    while result is None:
-                        result = self.get_response(ocr_url)
-                except Exception as e:
-                    print('Send to OCR Exception -' + str(e))
-                    result = "[]"
+                result = _process_frame_for_ocr(encodedFrame)
+                frame_resized = frame_optimized.copy()
             elif self.modelAcvOD:
+                from inference.ort_acv_predict import predict_acv
                 model_type = 'Object Detection'
                 frame_optimized = frame_resize(frame, self.targetDim, model = "acv")
-                from inference.ort_acv_predict import predict_acv
                 pil_frame = Image.fromarray(frame_optimized)
                 result = predict_acv(pil_frame)
                 predictions = result['predictions']
                 frame_resized = frame_optimized.copy()
                 annotated_frame = frame_optimized.copy()
             elif self.modelYolov5:
+                from inference.ort_yolov5 import predict_yolov5
                 model_type = 'Object Detection'
                 frame_optimized, ratio, pad_list = frame_resize(frame, self.targetDim, model = "yolov5")
-                from inference.ort_yolov5 import predict_yolov5
                 result = predict_yolov5(frame_optimized, pad_list)
                 predictions = result['predictions'][0]
                 new_w = int(ratio[0]*w)
@@ -250,41 +243,40 @@ class Allied_GVSP_Camera:
                 frame_resized = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
                 annotated_frame = frame_resized.copy()
             elif self.modelFasterRCNN:
-                model_type = 'Object Detection'
-                frame_optimized = frame_resize(frame, self.targetDim, model = "faster_rcnn")
                 from inference.ort_faster_rcnn import predict_faster_rcnn
+                model_type = 'Object Detection'
+                frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "faster_rcnn")
                 result = predict_faster_rcnn(frame_optimized)
                 predictions = result['predictions']
                 frame_resized = frame_optimized.copy()
                 annotated_frame = frame_optimized.copy()
             elif self.modelRetinanet:
-                model_type = 'Object Detection'
-                frame_optimized = frame_resize(frame, self.targetDim, model = "retinanet")
                 from inference.ort_retinanet import predict_retinanet
+                model_type = 'Object Detection'
+                frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "retinanet")
                 result = predict_retinanet(frame_optimized)
                 predictions = result['predictions']
                 frame_resized = frame_optimized.copy()
-                annotated_frame = frame_optimized.copy()
+                annotated_frame = frame_optimized.copy()    
             elif self.modelMaskRCNN:
-                model_type = 'Instance Segmentation'
-                frame_optimized = frame_resize(frame, self.targetDim, model = "mask_rcnn")
                 from inference.ort_mask_rcnn import predict_mask_rcnn
+                model_type = 'Instance Segmentation'
+                frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
                 result = predict_mask_rcnn(frame_optimized)
                 predictions = result['predictions']
                 frame_resized = frame_optimized.copy()
-                annotated_frame = frame_optimized.copy()
             elif self.modelClassMultiLabel:
+                from inference.ort_class_multi_label import predict_class_multi_label
                 model_type = 'Multi-Label Classification'
                 frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
-                from inference.ort_class_multi_label import predict_class_multi_label
                 result = predict_class_multi_label(frame_optimized)
                 predictions = result['predictions']
                 frame_resized = frame_optimized.copy()
                 annotated_frame = frame_optimized.copy()
             elif self.modelClassMultiClass:
+                from inference.ort_class_multi_class import predict_class_multi_class
                 model_type = 'Multi-Class Classification'
                 frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
-                from inference.ort_class_multi_class import predict_class_multi_class
                 result = predict_class_multi_class(frame_optimized)
                 predictions = result['predictions']
                 frame_resized = frame_optimized.copy()
@@ -357,10 +349,6 @@ class Allied_GVSP_Camera:
                     'unique_id': unique_id,
                     'detected_objects': predictions
                     }
-
-                    sql_insert = InsertInference(Allied_GVSP_Camera.sql_state, detection_count, inference_obj)
-                    Allied_GVSP_Camera.sql_state = sql_insert                      
-                    self.send_to_upstream(json.dumps(inference_obj))
 
                     # For establishing boundary area - comment out if not used
                     boundary_active = self.__convertStringToBool(os.environ['BOUNDARY_DETECTION'])
@@ -523,9 +511,9 @@ class Allied_GVSP_Camera:
                         'detected_objects': predictions
                         } 
 
-                    sql_insert = InsertInference(Allied_GVSP_Camera.sql_state, detection_count, inference_obj)
-                    Allied_GVSP_Camera.sql_state = sql_insert                      
-                    self.send_to_upstream(json.dumps(inference_obj)) 
+                sql_insert = InsertInference(Allied_GVSP_Camera.sql_state, detection_count, inference_obj)
+                Allied_GVSP_Camera.sql_state = sql_insert                      
+                self.send_to_upstream(json.dumps(inference_obj)) 
 
             elif model_type == 'Instance Segmentation':
                 detection_count = len(result['predictions'])
@@ -534,8 +522,21 @@ class Allied_GVSP_Camera:
                 annotatedPath = result["annotated_image_path"] 
                 print(f"Detection Count: {detection_count}")
                 if detection_count > 0:
-                    obj_det_val = 1
-
+                    inference_obj = {
+                    'model_name': self.model_name,
+                    'object_detected': 1,
+                    'camera_id': self.camID,
+                    'camera_name': f"{self.camLocation}-{self.camPosition}",
+                    'raw_image_name': frameFileName,
+                    'raw_image_local_path': frameFilePath,
+                    'annotated_image_name': annotatedName,
+                    'annotated_image_path': annotatedPath,
+                    'inferencing_time': t_infer,
+                    'created': created,
+                    'unique_id': unique_id,
+                    'detected_objects': predictions
+                    }
+                    
                 #   Frame upload
                     annotated_msg = {
                     'fs_name': "images-annotated",
@@ -546,26 +547,22 @@ class Allied_GVSP_Camera:
                     }
                     self.send_to_upload(json.dumps(annotated_msg))  
 
-                else:
-                    if self.storeAllInferences:
-                        obj_det_val = 0
-                        annotatedName = frameFileName
-                        annotatedPath = frameFilePath
-
+                elif self.storeAllInferences:
+                    print("No object detected.")
                     inference_obj = {
                         'model_name': self.model_name,
-                        'object_detected': obj_det_val,
+                        'object_detected': 0,
                         'camera_id': self.camID,
                         'camera_name': f"{self.camLocation}-{self.camPosition}",
                         'raw_image_name': frameFileName,
                         'raw_image_local_path': frameFilePath,
-                        'annotated_image_name': annotatedName,
-                        'annotated_image_path': annotatedPath,
+                        'annotated_image_name': frameFileName,
+                        'annotated_image_path': frameFilePath,
                         'inferencing_time': t_infer,
                         'created': created,
                         'unique_id': unique_id,
-                        'detected_objects': result['predictions']
-                        } 
+                        'detected_objects': predictions
+                        }
 
                     sql_insert = InsertInference(Allied_GVSP_Camera.sql_state, detection_count, inference_obj)
                     Allied_GVSP_Camera.sql_state = sql_insert                      
@@ -574,21 +571,11 @@ class Allied_GVSP_Camera:
             elif model_type == 'Multi-Label Classification' or model_type == 'Multi-Label Classification':
                 detection_count = len(result['predictions'])
                 t_infer = result["inference_time"]
-                annotatedName = result["annotated_image_name"]
-                annotatedPath = result["annotated_image_path"] 
                 print(f"Detection Count: {detection_count}")
                 if detection_count > 0:
-                    obj_det_val = 1
-
-                else:
-                    if self.storeAllInferences:
-                        obj_det_val = 0
-                        annotatedName = frameFileName
-                        annotatedPath = frameFilePath
-
-                inference_obj = {
+                    inference_obj = {
                     'model_name': self.model_name,
-                    'object_detected': obj_det_val,
+                    'object_detected': 1,
                     'camera_id': self.camID,
                     'camera_name': f"{self.camLocation}-{self.camPosition}",
                     'raw_image_name': frameFileName,
@@ -598,13 +585,29 @@ class Allied_GVSP_Camera:
                     'inferencing_time': t_infer,
                     'created': created,
                     'unique_id': unique_id,
-                    'detected_objects': result['predictions']
+                    'detected_objects': predictions
                     }
+
+                elif self.storeAllInferences:
+                    print("No class detected.")
+                    inference_obj = {
+                        'model_name': self.model_name,
+                        'object_detected': 0,
+                        'camera_id': self.camID,
+                        'camera_name': f"{self.camLocation}-{self.camPosition}",
+                        'raw_image_name': frameFileName,
+                        'raw_image_local_path': frameFilePath,
+                        'annotated_image_name': frameFileName,
+                        'annotated_image_path': frameFilePath,
+                        'inferencing_time': t_infer,
+                        'created': created,
+                        'unique_id': unique_id,
+                        'detected_objects': predictions
+                        }
 
                 sql_insert = InsertInference(Allied_GVSP_Camera.sql_state, detection_count, inference_obj)
                 Allied_GVSP_Camera.sql_state = sql_insert                      
                 self.send_to_upstream(json.dumps(inference_obj))
-
 
             print(f"Frame count = {self.frameCount}")
             self.cycle_end = time.time()
@@ -612,7 +615,7 @@ class Allied_GVSP_Camera:
             print("Cycle Time in ms: {}".format(self.t_full_cycle))
             
             self.frameRateCount = 0
-            FrameSave(frameFilePath, frame_optimized)
+            FrameSave(frameFilePath, frame_resized)
 
             if (self.storeRawFrames == True):
                 frame_msg = {

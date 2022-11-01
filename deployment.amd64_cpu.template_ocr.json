@@ -154,6 +154,40 @@
               }
             }
           },
+          "ACV_OCR_Read": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "env": {
+              "ApiKey": {
+                "value": "5e3b427f96d449d189f3d9e5ccf70765"
+              },
+              "Billing": {
+                "value": "https://aiot-computer-vision.cognitiveservices.azure.com/vision/read:3.2"
+              },
+              "Eula": {
+                "value": "accept"
+              }
+            },
+            "settings": {
+              "image": "mcr.microsoft.com/azure-cognitive-services/vision/read:3.2",
+              "createOptions": {
+                "ExposedPorts": {
+                  "5000/tcp": {}
+                },
+                "HostConfig": {
+                  "PortBindings": {
+                    "5000/tcp": [
+                      {
+                        "HostPort": "5000"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
           "Mfg_Vision_Model_Sync": {
             "settings": {
               "image": "${MODULES.Mfg_Vision_Model_Sync}",

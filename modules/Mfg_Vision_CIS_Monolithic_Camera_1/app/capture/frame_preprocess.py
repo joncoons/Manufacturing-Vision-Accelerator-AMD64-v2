@@ -138,8 +138,10 @@ def frame_resize(img, target, model):
     #     return scaled_frame
 
     elif model in ('ocr'):
-        ocrGreyFrame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        return ocrGreyFrame
+        modified_frame = img.copy()
+        # modified_frame = cv2.cvtColor(modified_frame, cv2.COLOR_BGR2GRAY) # convert to grayscale
+        # modified_frame = cv2.GaussianBlur(modified_frame,(3,3),0) # blur to reduce noise
+        return modified_frame
     else:
         print('Model not supported for image resizing')
         pass

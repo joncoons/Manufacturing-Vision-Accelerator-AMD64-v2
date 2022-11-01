@@ -36,9 +36,10 @@ class ONNXRuntimeObjectDetection():
         self.num_classes = len(classes)
              
     def predict(self, pre_image, image):
-        image = np.array(image)
-        output_names = [output.name for output in self.sess_output]
-        outputs = self.session.run(output_names=output_names, input_feed={self.sess_input[0].name:pre_image})
+        sess_input = self.session.get_inputs()
+        sess_output = self.session.get_outputs()
+        output_names = [output.name for output in sess_output]
+        outputs = self.session.run(output_names=output_names, input_feed={sess_input[0].name:pre_image})
         
         def _get_box_dims(image_shape, box):
             box_keys = ['xmin', 'ymin', 'xmax', 'ymax']
@@ -52,8 +53,6 @@ class ONNXRuntimeObjectDetection():
             filetime = now.strftime("%Y%d%m%H%M%S%f")
             annotatedName = f"mask-{filetime}-annotated.jpg"
             annotatedPath = os.path.join('/images_volume', annotatedName)
-            # output_counter = 0
-            # output_path = "/debug/"
             raw_pred = []
             
             color = (0, 255, 0)
@@ -65,8 +64,8 @@ class ONNXRuntimeObjectDetection():
                 probability = round(score.item(),2)
                 labelId = label_index.item()
                 labelName = classes[label_index]
-                image_text = f"{labelName}@{probability}%"
-
+                # image_text = f"{labelName}@{probability*100}%"
+                image_text = f"{probability*100}%"
                 mask = mask[0, :, :, None]
                 mask = cv2.resize(mask, (image.shape[1], image.shape[0]), 0, 0, interpolation = cv2.INTER_NEAREST)    
                 mask = mask > self.target_prob
@@ -74,10 +73,10 @@ class ONNXRuntimeObjectDetection():
                 image_masked[mask] = (0, 255, 100)
                 alpha = 0.3  # alpha blending with range 0 to 1
                 annotated_frame = cv2.addWeighted(image_masked, alpha, image, 1 - alpha,0, image)
-                start_point = (int(bbox['xmin'])), int(bbox['ymin'])
-                end_point = (int(bbox['xmax']), int(bbox['ymax']))
-                annotated_frame = cv2.rectangle(annotated_frame, start_point, end_point, color, thickness)
-                annotated_frame = cv2.putText(annotated_frame, image_text, start_point, fontFace = cv2.FONT_HERSHEY_TRIPLEX, fontScale = .6, color = (255,0, 0))
+                # start_point = (int(bbox['xmin'])), int(bbox['ymin'])
+                # end_point = (int(bbox['xmax']), int(bbox['ymax']))
+                # annotated_frame = cv2.rectangle(annotated_frame, start_point, end_point, color, thickness)
+                # annotated_frame = cv2.putText(annotated_frame, image_text, start_point, fontFace = cv2.FONT_HERSHEY_TRIPLEX, fontScale = .5, color = (255, 255, 255))
 
                 FrameSave(annotatedPath, annotated_frame)           
 
@@ -90,7 +89,6 @@ class ONNXRuntimeObjectDetection():
                 raw_pred.append(prediction)
 
             return raw_pred, annotatedName, annotatedPath
-
 
         boxes, labels, scores, masks = outputs[0], outputs[1], outputs[2], outputs[3]
         predictions, a_name, a_path = _get_prediction(boxes, labels, scores, masks, (self.height_onnx, self.width_onnx), self.classes)

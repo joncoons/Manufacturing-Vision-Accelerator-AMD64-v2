@@ -74,9 +74,9 @@ class Cam_File_Sink():
     def cap_stored_image(self):
         while True:
             img_list = os.listdir("/image_sink_volume")
-            sleep(2)
+            sleep(1)
             if not img_list:
-                time.sleep(15)
+                time.sleep(1)
                 continue
             for filename in img_list:
                 if self.check_extension(filename):
@@ -91,6 +91,7 @@ class Cam_File_Sink():
                         frame_optimized = frame_resize(frame, self.targetDim, model = "ocr")
                         encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
                         result = _process_frame_for_ocr(encodedFrame)
+                        frame_resized = frame_optimized.copy()
                     elif self.modelAcvOD:
                         from inference.ort_acv_predict import predict_acv
                         model_type = 'Object Detection'
@@ -132,6 +133,7 @@ class Cam_File_Sink():
                         frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
                         result = predict_mask_rcnn(frame_optimized)
                         predictions = result['predictions']
+                        frame_resized = frame_optimized.copy()
                     elif self.modelClassMultiLabel:
                         from inference.ort_class_multi_label import predict_class_multi_label
                         model_type = 'Multi-Label Classification'
@@ -217,9 +219,6 @@ class Cam_File_Sink():
                             'unique_id': unique_id,
                             'detected_objects': predictions
                             }
-
-                            sql_insert = InsertInference(Cam_File_Sink.sql_state, detection_count, inference_obj)        
-                            self.send_to_upstream(json.dumps(inference_obj))
 
                             # For establishing boundary area - comment out if not used
                             boundary_active = self.__convertStringToBool(os.environ['BOUNDARY_DETECTION'])
@@ -407,10 +406,7 @@ class Cam_File_Sink():
                             'unique_id': unique_id,
                             'detected_objects': predictions
                             }
-
-                            sql_insert = InsertInference(self.SqlDb, self.SqlPwd, detection_count, inference_obj)           
-                            self.send_to_upstream(json.dumps(inference_obj))
-
+                            
                         #   Frame upload
                             annotated_msg = {
                             'fs_name': "images-annotated",
@@ -440,8 +436,8 @@ class Cam_File_Sink():
 
                         sql_insert = InsertInference(Cam_File_Sink.sql_state, detection_count, inference_obj)
                         Cam_File_Sink.sql_state = sql_insert                      
-                        self.send_to_upstream(json.dumps(inference_obj))                
-                    
+                        self.send_to_upstream(json.dumps(inference_obj))   
+
                     elif model_type == 'Multi-Label Classification' or model_type == 'Multi-Label Classification':
                         detection_count = len(result['predictions'])
                         t_infer = result["inference_time"]
@@ -486,7 +482,7 @@ class Cam_File_Sink():
 
                 print(f"Frame count = {self.frameCount}")
                 
-                FrameSave(frameFilePath, frame_optimized)
+                FrameSave(frameFilePath, frame_resized)
 
                 if (self.storeRawFrames == True):
                     frame_msg = {
