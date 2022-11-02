@@ -1,24 +1,15 @@
 import enum
 import json
 # import torch
+import tempfile
 import numpy as np
 from PIL import Image
 import onnxruntime as ort
 import time
 import os
 from datetime import datetime
-# from inference.utils.general import non_max_suppression
+import tempfile
 
-# providers = [
-#     ('CUDAExecutionProvider', {
-#         'device_id': 0,
-#         'arena_extend_strategy': 'kSameAsRequested ',
-#         'gpu_mem_limit': 2 * 1024 * 1024 * 1024,
-#         'cudnn_conv_algo_search': 'DEFAULT',
-#         'do_copy_in_default_stream': True,
-#     }),
-#     'CPUExecutionProvider',
-# ]
 providers = [
     'CUDAExecutionProvider',
     'CPUExecutionProvider',
@@ -34,7 +25,15 @@ class ONNXRuntimeClassificationMultiClass():
         self.device_type = ort.get_device()
         print(f"ORT device: {self.device_type}")
 
+        # with tempfile.TemporaryDirectory() as model_store:
+        #     model_opt_path = os.path.join(model_store, os.path.basename(model_path))
+        #     sess_options = ort.SessionOptions()
+        #     sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        #     sess_options.optimized_model_filepath = model_opt_path
+        #     self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
+
         self.session = ort.InferenceSession(model_path, providers=providers)
+        
         batch, channel, height_onnx_crop_size, width_onnx_crop_size = self.session.get_inputs()[0].shape
         batch, channel, height_onnx_crop_size, width_onnx_crop_size
         self.batch = batch
@@ -43,20 +42,7 @@ class ONNXRuntimeClassificationMultiClass():
         self.width_onnx = width_onnx_crop_size
         self.sess_input = self.session.get_inputs()
         self.sess_output = self.session.get_outputs()
-        print(f"No. of inputs : {len(self.sess_input)}, No. of outputs : {len(self.sess_output)}") 
-        for idx, input_ in enumerate(range(len(self.sess_input))):
-            input_name = self.sess_input[input_].name
-            input_shape = self.sess_input[input_].shape
-            input_type = self.sess_input[input_].type
-            print(f"{idx} Input name : { input_name }, Input shape : {input_shape}, \
-            Input type  : {input_type}")  
-
-        for idx, output in enumerate(range(len(self.sess_output))):
-            output_name = self.sess_output[output].name
-            output_shape = self.sess_output[output].shape
-            output_type = self.sess_output[output].type
-            print(f" {idx} Output name : {output_name}, Output shape : {output_shape}, \
-            Output type  : {output_type}") 
+        # print(f"No. of inputs : {len(self.sess_input)}, No. of outputs : {len(self.sess_output)}") 
 
         self.classes = classes
         self.num_classes = len(classes)
@@ -153,11 +139,8 @@ def predict_class_multi_label(image):
         norm_img_data[i,:,:] = (frame[i,:,:] / 255 - mean_vec[i]) / std_vec[i]
 
     frame = np.expand_dims(norm_img_data, axis=0)
-    batch_size = 1
-    assert batch_size == frame.shape[0]
-    
-    # frame /= 255.0 # normalize pixels
-    print(f"Batch-Size, Channel, Height, Width : {frame.shape}")
+
+    # print(f"Batch-Size, Channel, Height, Width : {frame.shape}")
     t1 = time.time()
     img_predict = ort_model.predict(frame, image)
     t2 = time.time()
@@ -167,7 +150,7 @@ def predict_class_multi_label(image):
         'inference_time': t_infer,
         'predictions': img_predict
         }
-    print(f"Response Type: {type(response)}")
+    # print(f"Response Type: {type(response)}")
     print(f"Response : {response}")
     return response
 

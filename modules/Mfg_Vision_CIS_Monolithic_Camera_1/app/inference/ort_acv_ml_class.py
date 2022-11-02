@@ -1,12 +1,4 @@
-# The steps implemented in the object detection sample code: 
-# 1. for an image of width and height being (w, h) pixels, resize image to (w', h'), where w/h = w'/h' and w' x h' = 262144
-# 2. resize network input size to (w', h')
-# 3. pass the image to network and do inference
-# (4. if inference speed is too slow for you, try to make w' x h' smaller, which is defined with DEFAULT_INPUT_SIZE (in object_detection.py or ObjectDetection.cs))
 import os
-import sys
-import json
-import tempfile
 from datetime import datetime
 from urllib.request import urlopen
 import time
@@ -18,40 +10,73 @@ import onnx
 import numpy as np
 from PIL import Image, ImageDraw
 
-from inference.ort_acv_object_detection import ObjectDetection
-
-# MODEL_FILENAME = os.path.join('/model_volume/',os.environ["MODEL_FILE"])
-# LABELS_FILENAME = os.path.join('/model_volume/',os.environ["LABEL_FILE"])
-
 providers = [
     'CUDAExecutionProvider',
     'CPUExecutionProvider',
 ]
 
-class ONNXRuntimeObjectDetection(ObjectDetection):
+class ONNXRuntimeACVClass:
     """Object Detection class for ONNX Runtime"""
     def __init__(self, model_filename, labels):
-        super(ONNXRuntimeObjectDetection, self).__init__(labels)
-        model = onnx.load(model_filename)
-        with tempfile.TemporaryDirectory() as dirpath:
-            temp = os.path.join(dirpath, os.path.basename(model_filename))
-            model.graph.input[0].type.tensor_type.shape.dim[-1].dim_param = 'dim1'
-            model.graph.input[0].type.tensor_type.shape.dim[-2].dim_param = 'dim2'
-            onnx.save(model, temp)
-            self.session = onnxruntime.InferenceSession(temp, providers=providers)
+        self.session = onnxruntime.InferenceSession(str(model_filename), providers=providers)
+        assert len(self.session.get_inputs()) == 1
+        self.input_shape = self.session.get_inputs()[0].shape[2:]
         self.input_name = self.session.get_inputs()[0].name
-        self.is_fp16 = self.session.get_inputs()[0].type == 'tensor(float16)'
-        print("Model pre-loaded on initialize - complete")
+        self.input_type = {'tensor(float)': np.float32, 'tensor(float16)': np.float16}[self.session.get_inputs()[0].type]
+        self.output_names = [o.name for o in self.session.get_outputs()]
+        self.target_prob = float(os.environ["PROB_THRES"])
+        self.is_bgr = False
+        self.is_range255 = False
+        onnx_model = onnx.load(model_filename)
+        for metadata in onnx_model.metadata_props:
+            if metadata.key == 'Image.BitmapPixelFormat' and metadata.value == 'Bgr8':
+                self.is_bgr = True
+            elif metadata.key == 'Image.NominalPixelRange' and metadata.value == 'NominalRange_0_255':
+                self.is_range255 = True
         
-    def predict(self, preprocessed_image):
-        inputs = np.array(preprocessed_image, dtype=np.float32)[np.newaxis,:,:,(2,1,0)] # RGB -> BGR
-        inputs = np.ascontiguousarray(np.rollaxis(inputs, 3, 1))
+        self.classes = labels
+        self.num_classes = len(self.classes)
+        
+    def predict(self, image_array):
+        outputs = self.session.run(self.output_names, {self.input_name: image_array.astype(self.input_type)})
+        print(f"Predictions all : {outputs}")
+        
+        scores = outputs[0]
+        print(f"Scores all : {scores}")
+        
+        def sigmoid(x):
+            return 1 / (1 + np.exp(-x))
 
-        if self.is_fp16:
-            inputs = inputs.astype(np.float16)
+        conf_scores = sigmoid(scores)
+        # print(f"Confidence scores: {conf_scores}")
+        label_preds = np.where(conf_scores > self.target_prob)
+        # print("predicted classes:", ([(class_idx, self.classes[class_idx]) for class_idx in zip(label_preds[1])]))
+        pred_list = []
+        # to match SQL table schema
+        x1 = int(0)
+        y1 = int(0)
+        x2 = int(0)
+        y2 = int(0)
+        for class_idx, score in enumerate(conf_scores[0]):
+            if score > self.target_prob:
+                print(f"probability type: {type(round(score, 4))}")
+                print(f"class type: {type(self.classes[class_idx])}")
+                print(f"class_idx type: {type(class_idx)}")
+                pred_list.append({
+                    "probability": float(round(score, 4)),
+                    "labelId": class_idx,
+                    "labelName": self.classes[class_idx],
+                    "bbox": {
+                        'left': x1,
+                        'top': y1,
+                        'width': x2,
+                        'height': y2
+                    }
+                })
 
-        outputs = self.session.run(None, {self.input_name: inputs})
-        return np.squeeze(outputs).transpose((1,2,0)).astype(np.float32)
+        print(f"Predictions : {pred_list}")
+        # print(f"Pred_list Type: {type(pred_list)}")
+        return pred_list
 
 def log_msg(msg):
     print("{}: {}".format(datetime.now(), msg))
@@ -65,45 +90,33 @@ def initialize_acv_ml_class(modelPath, labelPath):
     
     print('Loading model...', end='')
     global od_model
-    od_model = ONNXRuntimeObjectDetection(modelPath, labels)
+    od_model = ONNXRuntimeACVClass(modelPath, labels)
     print('Success!')
 
-def predict_acv(image):
+def predict_acv_ml_class(image):
     log_msg('Predicting image')
-    # with open(LABELS_FILENAME, 'r') as f:
-    #     labels = [l.strip() for l in f.readlines()]
+    frame = image.transpose(2, 0, 1)
+    mean_vec = np.array([0.485, 0.456, 0.406])
+    std_vec = np.array([0.229, 0.224, 0.225])
+    norm_img_data = np.zeros(frame.shape).astype('float32')
+    print(f"Frame shape: {frame.shape}")
+    for i in range(frame.shape[0]):
+        norm_img_data[i,:,:] = (frame[i,:,:] / 255 - mean_vec[i]) / std_vec[i]
+    frame = np.expand_dims(norm_img_data, axis=0)
+    frame = frame[:, (2, 1, 0), :, :] # BGR to RGB
 
-    # od_model = ONNXRuntimeObjectDetection(MODEL_FILENAME, labels)
-    w, h = image.size
-    log_msg("Image size: {}x{}".format(w, h))
+    print(f"Batch-Size, Channel, Height, Width : {frame.shape}")
+
     t1 = time.time()
-    predictions = od_model.predict_image(image)
+    img_predict = od_model.predict(frame)
     t2 = time.time()
-    t_infer = (t2-t1)*1000
-    response = predictions
+    t_infer = round((t2-t1)*1000,2)
     response = {
-                'created': datetime.utcnow().isoformat(),
-                'inference_time': t_infer,
-                'predictions': predictions
-                }
-
-    # log_msg('Results: ' + json.dumps(response))
-    
+        'created': datetime.utcnow().isoformat(),
+        'inference_time': t_infer,
+        'predictions': img_predict
+        }
+    print(f"Response : {response}")
     return response
 
-# def main(image_filename):
-#     # Load labels
-#     with open(LABELS_FILENAME, 'r') as f:
-#         labels = [l.strip() for l in f.readlines()]
 
-#     od_model = ONNXRuntimeObjectDetection(MODEL_FILENAME, labels)
-
-#     image = Image.open(image_filename)
-#     predictions = od_model.predict_image(image)
-#     print(predictions)
-    
-# if __name__ == '__main__':
-#     if len(sys.argv) <= 1:
-#         print('USAGE: {} image_filename'.format(sys.argv[0]))
-#     else:
-#         main(sys.argv[1])

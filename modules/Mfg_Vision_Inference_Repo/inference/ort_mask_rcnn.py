@@ -4,6 +4,7 @@ import numpy as np
 import onnxruntime as ort
 import time
 import os
+import tempfile
 from datetime import datetime
 from capture.frame_save import FrameSave
 
@@ -21,6 +22,13 @@ class ONNXRuntimeObjectDetection():
         
         self.device_type = ort.get_device()
         print(f"ORT device: {self.device_type}")
+        
+        # with tempfile.TemporaryDirectory() as model_store:
+        #     model_opt_path = os.path.join(model_store, os.path.basename(model_path))
+        #     sess_options = ort.SessionOptions()
+        #     sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        #     sess_options.optimized_model_filepath = model_opt_path
+        #     self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
 
         self.session = ort.InferenceSession(model_path, providers=providers)
 

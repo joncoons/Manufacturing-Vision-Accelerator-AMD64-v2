@@ -1,9 +1,4 @@
-# The steps implemented in the object detection sample code: 
-# 1. for an image of width and height being (w, h) pixels, resize image to (w', h'), where w/h = w'/h' and w' x h' = 262144
-# 2. resize network input size to (w', h')
-# 3. pass the image to network and do inference
-# (4. if inference speed is too slow for you, try to make w' x h' smaller, which is defined with DEFAULT_INPUT_SIZE (in object_detection.py or ObjectDetection.cs))
-import pathlib
+import os
 from datetime import datetime
 from urllib.request import urlopen
 import time
@@ -14,9 +9,6 @@ import onnx
 
 import numpy as np
 from PIL import Image, ImageDraw
-
-# MODEL_FILENAME = os.path.join('/model_volume/',os.environ["MODEL_FILE"])
-# LABELS_FILENAME = os.path.join('/model_volume/',os.environ["LABEL_FILE"])
 
 providers = [
     'CUDAExecutionProvider',
@@ -32,7 +24,7 @@ class ONNXRuntimeACVClass:
         self.input_name = self.session.get_inputs()[0].name
         self.input_type = {'tensor(float)': np.float32, 'tensor(float16)': np.float16}[self.session.get_inputs()[0].type]
         self.output_names = [o.name for o in self.session.get_outputs()]
-
+        self.target_prob = float(os.environ["PROB_THRES"])
         self.is_bgr = False
         self.is_range255 = False
         onnx_model = onnx.load(model_filename)
@@ -42,22 +34,51 @@ class ONNXRuntimeACVClass:
             elif metadata.key == 'Image.NominalPixelRange' and metadata.value == 'NominalRange_0_255':
                 self.is_range255 = True
         
-    def predict(self, image):
-        input_array = np.array(image, dtype=np.float32)[np.newaxis, :, :, :]
-        input_array = input_array.transpose((0, 3, 1, 2))  # => (N, C, H, W)
-        if self.is_bgr:
-            input_array = input_array[:, (2, 1, 0), :, :]
-        if not self.is_range255:
-            input_array = input_array / 255  # => Pixel values should be in range [0, 1]
+        self.classes = labels
+        self.num_classes = len(self.classes)
+        
+    def predict(self, image_array):
+        outputs = self.session.run(self.output_names, {self.input_name: image_array.astype(self.input_type)})
+        # print(f"Predictions all : {outputs}")
+        
+        scores = outputs[0]
+        # print(f"Scores all : {scores}")
+        
+        def softmax(x):
+            e_x = np.exp(x - np.max(x, axis=1, keepdims=True))
+            return e_x / np.sum(e_x, axis=1, keepdims=True)
 
-        outputs = self.session.run(self.output_names, {self.input_name: input_array.astype(self.input_type)})
         pred_list = []
-        x1 = int(0)
-        y1 = int(0)
-        x2 = int(0)
-        y2 = int(0)
-        # outputs[i] for i, name in enumerate(self.output_names)
-        return {name: outputs[i] for i, name in enumerate(self.output_names)}
+        conf_scores = softmax(scores)
+        # print(f"Confidence scores: {conf_scores}")
+        score_max = np.max(conf_scores, axis=1)
+        # print(f"Score Max: {score_max[0]}")
+        if score_max[0] > self.target_prob:
+            class_pred = np.argmax(conf_scores, axis=1)
+            # print("predicted classes:", ([(class_idx, self.classes[class_idx]) for class_idx in class_pred]))
+            # to match SQL table schema
+            x1 = int(0)
+            y1 = int(0)
+            x2 = int(0)
+            y2 = int(0)
+            for class_idx in class_pred:
+                pred_list.append({
+                    "probability": conf_scores[0][class_idx].item(),
+                    "labelId": class_idx.item(),
+                    "labelName": self.classes[class_idx],
+                    "bbox": {
+                        'left': x1,
+                        'top': y1,
+                        'width': x2,
+                        'height': y2
+                    }
+                })
+            print(f"Predictions : {pred_list}")
+
+        else:
+            print('No prediction above threshold')
+
+        return pred_list
 
 def log_msg(msg):
     print("{}: {}".format(datetime.now(), msg))
@@ -76,23 +97,28 @@ def initialize_acv_mc_class(modelPath, labelPath):
 
 def predict_acv_mc_class(image):
     log_msg('Predicting image')
+    frame = image.transpose(2, 0, 1)
+    mean_vec = np.array([0.485, 0.456, 0.406])
+    std_vec = np.array([0.229, 0.224, 0.225])
+    norm_img_data = np.zeros(frame.shape).astype('float32')
+    print(f"Frame shape: {frame.shape}")
+    for i in range(frame.shape[0]):
+        norm_img_data[i,:,:] = (frame[i,:,:] / 255 - mean_vec[i]) / std_vec[i]
+    frame = np.expand_dims(norm_img_data, axis=0)
+    frame = frame[:, (2, 1, 0), :, :] # BGR to RGB
 
-    w, h = image.size
-    log_msg("Image size: {}x{}".format(w, h))
+    # print(f"Batch-Size, Channel, Height, Width : {frame.shape}")
+
     t1 = time.time()
-    predictions = od_model.predict(image)
-    print(f'Predictions: {predictions}')
+    img_predict = od_model.predict(frame)
     t2 = time.time()
-    t_infer = (t2-t1)*1000
+    t_infer = round((t2-t1)*1000,2)
+    response = {
+        'created': datetime.utcnow().isoformat(),
+        'inference_time': t_infer,
+        'predictions': img_predict
+        }
+    print(f"Response : {response}")
+    return response
 
-    # response = predictions
-    # response = {
-    #             'created': datetime.utcnow().isoformat(),
-    #             'inference_time': t_infer,
-    #             'predictions': predictions
-    #             }
-
-    # log_msg('Results: ' + json.dumps(response))
-    
-    # return response
 

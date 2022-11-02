@@ -121,6 +121,20 @@ class Basler_GVSP_Camera:
                         encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
                         result = _process_frame_for_ocr(encodedFrame)
                         frame_resized = frame_optimized.copy()
+                    elif self.modelAcvMultiClass:
+                        from inference.ort_acv_mc_class import predict_acv_mc_class
+                        model_type = 'Multi-Class Classification'
+                        frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                        result = predict_acv_mc_class(frame_optimized)
+                        predictions = result['predictions']
+                        frame_resized = frame_optimized.copy()
+                    elif self.modelAcvMultiLabel:
+                        from inference.ort_acv_ml_class import predict_acv_ml_class
+                        model_type = 'Multi-Class Classification'
+                        frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                        result = predict_acv_ml_class(frame_optimized)
+                        predictions = result['predictions']
+                        frame_resized = frame_optimized.copy()
                     elif self.modelAcvOD:
                         from inference.ort_acv_predict import predict_acv
                         model_type = 'Object Detection'
@@ -170,7 +184,6 @@ class Basler_GVSP_Camera:
                         result = predict_class_multi_label(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
                     elif self.modelClassMultiClass:
                         from inference.ort_class_multi_class import predict_class_multi_class
                         model_type = 'Multi-Class Classification'
@@ -178,7 +191,6 @@ class Basler_GVSP_Camera:
                         result = predict_class_multi_class(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
                     else:
                         print("No model selected")
                         result = None
@@ -265,7 +277,7 @@ class Basler_GVSP_Camera:
                                 # color = (0, 255, 0)
                                 # thickness = 1
                                 # if bounding_box:
-                                #     if self.modelACV:
+                                #     if self.modelAcvOD:
                                 #         height, width, channel = annotated_frame.shape
                                 #         xmin = int(bounding_box["left"] * width)
                                 #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -290,7 +302,7 @@ class Basler_GVSP_Camera:
                                 thickness1 = 1
                                 thickness2 = 1
                                 if bounding_box:
-                                    if self.modelACV:
+                                    if self.modelAcvOD:
                                         height, width, channel = annotated_frame.shape
                                         xmin = int(bounding_box["left"] * width)
                                         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -323,7 +335,7 @@ class Basler_GVSP_Camera:
                                 # thickness1 = 1
                                 # thickness2 = 1
                                 # if bounding_box:
-                                #     if self.modelACV:
+                                #     if self.modelAcvOD:
                                 #         height, width, channel = annotated_frame.shape
                                 #         xmin = int(bounding_box["left"] * width)
                                 #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))

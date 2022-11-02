@@ -93,85 +93,97 @@ class RTSP_Camera():
                         self.frameRateCount = 0
                         self.cycle_begin = time.time()
                         h, w = frame.shape[:2]
-                    if ((self.modelAcvOcr == True) and (self.modelAcvOcrSecondary != True)):
-                        from inference.ocr_read import _process_frame_for_ocr
-                        model_type = 'OCR'
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "ocr")
-                        encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
-                        result = _process_frame_for_ocr(encodedFrame)
-                        frame_resized = frame_optimized.copy()
-                    elif self.modelAcvOD:
-                        from inference.ort_acv_predict import predict_acv
-                        model_type = 'Object Detection'
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "acv")
-                        pil_frame = Image.fromarray(frame_optimized)
-                        result = predict_acv(pil_frame)
-                        predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
-                    elif self.modelYolov5:
-                        from inference.ort_yolov5 import predict_yolov5
-                        model_type = 'Object Detection'
-                        frame_optimized, ratio, pad_list = frame_resize(frame, self.targetDim, model = "yolov5")
-                        result = predict_yolov5(frame_optimized, pad_list)
-                        predictions = result['predictions'][0]
-                        new_w = int(ratio[0]*w)
-                        new_h = int(ratio[1]*h)
-                        frame_resized = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
-                        annotated_frame = frame_resized.copy()
-                    elif self.modelFasterRCNN:
-                        from inference.ort_faster_rcnn import predict_faster_rcnn
-                        model_type = 'Object Detection'
-                        frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "faster_rcnn")
-                        result = predict_faster_rcnn(frame_optimized)
-                        predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
-                    elif self.modelRetinanet:
-                        from inference.ort_retinanet import predict_retinanet
-                        model_type = 'Object Detection'
-                        frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "retinanet")
-                        result = predict_retinanet(frame_optimized)
-                        predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()    
-                    elif self.modelMaskRCNN:
-                        from inference.ort_mask_rcnn import predict_mask_rcnn
-                        model_type = 'Instance Segmentation'
-                        frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
-                        result = predict_mask_rcnn(frame_optimized)
-                        predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                    elif self.modelClassMultiLabel:
-                        from inference.ort_class_multi_label import predict_class_multi_label
-                        model_type = 'Multi-Label Classification'
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
-                        result = predict_class_multi_label(frame_optimized)
-                        predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
-                    elif self.modelClassMultiClass:
-                        from inference.ort_class_multi_class import predict_class_multi_class
-                        model_type = 'Multi-Class Classification'
-                        frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
-                        result = predict_class_multi_class(frame_optimized)
-                        predictions = result['predictions']
-                        frame_resized = frame_optimized.copy()
-                        annotated_frame = frame_optimized.copy()
-                    else:
-                        print("No model selected")
-                        result = None
+                        if ((self.modelAcvOcr == True) and (self.modelAcvOcrSecondary != True)):
+                            from inference.ocr_read import _process_frame_for_ocr
+                            model_type = 'OCR'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "ocr")
+                            encodedFrame = cv2.imencode('.jpg', frame_optimized)[1].tobytes()
+                            result = _process_frame_for_ocr(encodedFrame)
+                            frame_resized = frame_optimized.copy()
+                        elif self.modelAcvMultiClass:
+                            from inference.ort_acv_mc_class import predict_acv_mc_class
+                            model_type = 'Multi-Class Classification'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                            result = predict_acv_mc_class(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                        elif self.modelAcvMultiLabel:
+                            from inference.ort_acv_ml_class import predict_acv_ml_class
+                            model_type = 'Multi-Class Classification'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                            result = predict_acv_ml_class(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                        elif self.modelAcvOD:
+                            from inference.ort_acv_predict import predict_acv
+                            model_type = 'Object Detection'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "acv")
+                            pil_frame = Image.fromarray(frame_optimized)
+                            result = predict_acv(pil_frame)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                            annotated_frame = frame_optimized.copy()
+                        elif self.modelYolov5:
+                            from inference.ort_yolov5 import predict_yolov5
+                            model_type = 'Object Detection'
+                            frame_optimized, ratio, pad_list = frame_resize(frame, self.targetDim, model = "yolov5")
+                            result = predict_yolov5(frame_optimized, pad_list)
+                            predictions = result['predictions'][0]
+                            new_w = int(ratio[0]*w)
+                            new_h = int(ratio[1]*h)
+                            frame_resized = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                            annotated_frame = frame_resized.copy()
+                        elif self.modelFasterRCNN:
+                            from inference.ort_faster_rcnn import predict_faster_rcnn
+                            model_type = 'Object Detection'
+                            frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "faster_rcnn")
+                            result = predict_faster_rcnn(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                            annotated_frame = frame_optimized.copy()
+                        elif self.modelRetinanet:
+                            from inference.ort_retinanet import predict_retinanet
+                            model_type = 'Object Detection'
+                            frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "retinanet")
+                            result = predict_retinanet(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                            annotated_frame = frame_optimized.copy()    
+                        elif self.modelMaskRCNN:
+                            from inference.ort_mask_rcnn import predict_mask_rcnn
+                            model_type = 'Instance Segmentation'
+                            frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
+                            result = predict_mask_rcnn(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                        elif self.modelClassMultiLabel:
+                            from inference.ort_class_multi_label import predict_class_multi_label
+                            model_type = 'Multi-Label Classification'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                            result = predict_class_multi_label(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                        elif self.modelClassMultiClass:
+                            from inference.ort_class_multi_class import predict_class_multi_class
+                            model_type = 'Multi-Class Classification'
+                            frame_optimized = frame_resize(frame, self.targetDim, model = "classification")
+                            result = predict_class_multi_class(frame_optimized)
+                            predictions = result['predictions']
+                            frame_resized = frame_optimized.copy()
+                        else:
+                            print("No model selected")
+                            result = None
 
-                        now = datetime.now()
-                        created = now.isoformat()
-                        unique_id = str(uuid.uuid4())
-                        filetime = now.strftime("%Y%d%m%H%M%S%f")
-                        annotatedName = f"{self.camLocation}-{self.camPosition}-{filetime}-annotated.jpg"
-                        annotatedPath = os.path.join('/images_volume', annotatedName)
-                        frameFileName = f"{self.camLocation}-{self.camPosition}-{filetime}-rawframe.jpg"
-                        frameFilePath = os.path.join('/images_volume', frameFileName)
-                        retrainFileName = f"{self.camLocation}-{self.camPosition}-{filetime}-retrain.jpg"
-                        retrainFilePath = os.path.join('/images_volume', retrainFileName)
+                            now = datetime.now()
+                            created = now.isoformat()
+                            unique_id = str(uuid.uuid4())
+                            filetime = now.strftime("%Y%d%m%H%M%S%f")
+                            annotatedName = f"{self.camLocation}-{self.camPosition}-{filetime}-annotated.jpg"
+                            annotatedPath = os.path.join('/images_volume', annotatedName)
+                            frameFileName = f"{self.camLocation}-{self.camPosition}-{filetime}-rawframe.jpg"
+                            frameFilePath = os.path.join('/images_volume', frameFileName)
+                            retrainFileName = f"{self.camLocation}-{self.camPosition}-{filetime}-retrain.jpg"
+                            retrainFilePath = os.path.join('/images_volume', retrainFileName)
                         
                         if result is not None:
                             print(json.dumps(result))

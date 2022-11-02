@@ -1,5 +1,5 @@
 # Manufacturing-Vision-Accelerator-AMD64-v2
-Version 2 of the Manufacturing Vision Solution Accelerator includes additional algorithms for object detection, multi-class/label classification and instance segmentation, giving full parity with Azure ML AutoML for Images.  Version 2 also includes support the Azure Computer Vision OCR container.  
+Version 2 of the Manufacturing Vision Solution Accelerator includes additional algorithms for object detection, multi-class/label classification and instance segmentation, giving full parity with Azure ML AutoML for Images.  Version 2 also includes support for the Azure Computer Vision OCR container.  
 
 The other major difference between v1 and v2 is the use of blob storage for the model repository versus containerizing the model repo.  This flow fits much better into a CI/CD pipeline for MLOps.
 

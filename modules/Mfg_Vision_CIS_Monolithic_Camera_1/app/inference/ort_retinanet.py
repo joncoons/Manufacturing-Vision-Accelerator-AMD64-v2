@@ -4,17 +4,8 @@ import onnxruntime as ort
 import time
 import os
 from datetime import datetime
+import tempfile
 
-# providers = [
-#     ('CUDAExecutionProvider', {
-#         'device_id': 0,
-#         'arena_extend_strategy': 'kSameAsRequested ',
-#         'gpu_mem_limit': 2 * 1024 * 1024 * 1024,
-#         'cudnn_conv_algo_search': 'DEFAULT',
-#         'do_copy_in_default_stream': True,
-#     }),
-#     'CPUExecutionProvider',
-# ]
 providers = [
     'CUDAExecutionProvider',
     'CPUExecutionProvider',
@@ -31,6 +22,13 @@ class ONNXRuntimeObjectDetection():
         
         self.device_type = ort.get_device()
         print(f"ORT device: {self.device_type}")
+
+        # with tempfile.TemporaryDirectory() as model_store:
+        #     model_opt_path = os.path.join(model_store, os.path.basename(model_path))
+        #     sess_options = ort.SessionOptions()
+        #     sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        #     sess_options.optimized_model_filepath = model_opt_path
+        #     self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
 
         self.session = ort.InferenceSession(model_path, sess_options=session_options, providers=providers)
 
