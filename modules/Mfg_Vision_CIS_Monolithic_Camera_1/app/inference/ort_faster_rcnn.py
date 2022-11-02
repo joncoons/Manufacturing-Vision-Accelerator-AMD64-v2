@@ -4,6 +4,7 @@ import onnxruntime as ort
 import time
 import os
 from datetime import datetime
+import tempfile
 
 # providers = [
 #     ('CUDAExecutionProvider', {
@@ -30,7 +31,14 @@ class ONNXRuntimeObjectDetection():
         self.device_type = ort.get_device()
         print(f"ORT device: {self.device_type}")
 
-        self.session = ort.InferenceSession(model_path, providers=providers)
+        with tempfile.TemporaryDirectory() as model_store:
+            model_opt_path = os.path.join(model_store, os.path.basename(model_path))
+            sess_options = ort.SessionOptions()
+            sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+            sess_options.optimized_model_filepath = model_opt_path
+            self.session = ort.InferenceSession(model_path, sess_options, providers=providers)
+
+        # self.session = ort.InferenceSession(model_path, providers=providers)
 
         self.input_name = self.session.get_inputs()[0].name
         batch, channel, height_onnx, width_onnx = self.session.get_inputs()[0].shape

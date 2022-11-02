@@ -34,7 +34,7 @@ class InsertInference():
         self.t_insert = 0
 
         self.sql_state = sql_state
-        print(f"SQL package:  {json.dumps(inference)}")
+        # print(f"SQL package:  {json.dumps(inference)}")
         self.create_record()
     
     def create_record(self):  

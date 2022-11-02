@@ -237,7 +237,7 @@ class Cam_File_Sink():
                                 # color = (0, 255, 0)
                                 # thickness = 1
                                 # if bounding_box:
-                                #     if self.modelACV:
+                                #     if self.modelAcvOD:
                                 #         height, width, channel = annotated_frame.shape
                                 #         xmin = int(bounding_box["left"] * width)
                                 #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))
@@ -295,7 +295,7 @@ class Cam_File_Sink():
                                 # thickness1 = 1
                                 # thickness2 = 1
                                 # if bounding_box:
-                                #     if self.modelACV:
+                                #     if self.modelAcvOD:
                                 #         height, width, channel = annotated_frame.shape
                                 #         xmin = int(bounding_box["left"] * width)
                                 #         xmax = int((bounding_box["left"] * width) + (bounding_box["width"] * width))

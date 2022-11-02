@@ -9,6 +9,7 @@ class TwinUpdater():
 
         try:
             self.client = IoTHubModuleClient.create_from_edge_environment()
+            # self.client = IoTHubModuleClient.create_from_connection_string("module connection string")
             self.client.connect()
             print("Client connected")
             twin_read = self.client.get_twin()
