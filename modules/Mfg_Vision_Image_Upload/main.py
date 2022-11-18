@@ -18,8 +18,10 @@ stop_event = threading.Event()
 
 def create_client():
     client = IoTHubModuleClient.create_from_edge_environment()
+    # client = IoTHubModuleClient.create_from_connection_string(MODULE_CONN_STR)
+    print("Created IoT Hub client")
     async def receive_message_handler(message):
-        if message.input_name in ("inputImageSend"):
+        if message.input_name == "inputImageSend":
             message = message.data
             msg_str = message.decode('utf-8')
             print(msg_str)
@@ -90,6 +92,8 @@ if __name__ == "__main__":
     try:
         ADL_G2 = __convertStringToBool(os.environ["ADL_G2"])
         STORE_CONN_STR = os.environ["STORE_CONN_STR"]
+        MODULE_CONN_STR = os.environ["MODULE_CONN_STR"]
+        print(MODULE_CONN_STR)
     except ValueError as error:
         print(error)
         sys.exit(1)

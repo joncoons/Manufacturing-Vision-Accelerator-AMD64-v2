@@ -10,13 +10,14 @@ class HubConnector():
 
     def __init__(self):
         self.client = IoTHubModuleClient.create_from_edge_environment()
-        # self.client = IoTHubModuleClient.create_from_connection_string("module connection string")
+        # self.client = IoTHubModuleClient.create_from_connection_string(os.environ["MODULE_CONN_STR"])
         self.client.connect()
 
     def send_to_output(self, message: Union[Message, str], outputQueueName: str):
         self.client.send_message_to_output(message, outputQueueName)
 
 def send_to_upload(msg_str: str) -> None:
+    print(f"Upload message {msg_str}")
     message = Message(bytearray(msg_str, 'utf-8'))
     hub_connector.send_to_output(message, "outputImageSend")
 

@@ -368,12 +368,14 @@ class Cam_File_Sink():
                         
                             FrameSave(annotatedPath, annotated_frame)
                             annotated_msg = {
-                                'fs_name': "images-annotated",
+                                'fs_name': "applied-ai-annotated",
                                 'img_name': annotatedName,
                                 'location': self.camLocation,
                                 'position': self.camPosition,
                                 'path': annotatedPath
                                 }
+                            print(f'anotated_msg: {annotated_msg}')
+                            
                             self.send_to_upload(json.dumps(annotated_msg))
 
                         elif self.storeAllInferences:
@@ -498,7 +500,7 @@ class Cam_File_Sink():
 
                 if (self.storeRawFrames == True):
                     frame_msg = {
-                    'fs_name': "images-frame",
+                    'fs_name': "applied-ai-frame",
                     'img_name': frameFileName,
                     'location': self.camLocation,
                     'position': self.camPosition,
@@ -509,7 +511,7 @@ class Cam_File_Sink():
                 if (self.frameCount*(self.inferenceFPS/self.camFPS)) % self.retrainInterval == 0:
                     FrameSave(retrainFilePath, frame)
                     retrain_msg = {
-                    'fs_name': "images-retraining",
+                    'fs_name': "applied-ai-retraining",
                     'img_name': retrainFileName,
                     'location': self.camLocation,
                     'position': self.camPosition,

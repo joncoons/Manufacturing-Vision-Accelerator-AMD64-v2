@@ -22,18 +22,9 @@
           "edgeAgent": {
             "type": "docker",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-agent:1.2.10-linux-amd64",
+              "image": "mcr.microsoft.com/azureiotedge-agent:1.4",
               "createOptions": {
-                "HostConfig": {
-                  "Binds": [
-                    "/home/edge_assets/edge_agent_volume:/edge_agent_volume"
-                  ]
-                }
-              }
-            },
-            "env": {
-              "storageFolder": {
-                "value": "edge_agent_volume"
+                "HostConfig": {}
               }
             }
           },
@@ -42,12 +33,9 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/azureiotedge-hub:1.2.10-linux-amd64",
+              "image": "mcr.microsoft.com/azureiotedge-hub:1.4",
               "createOptions": {
                 "HostConfig": {
-                  "Binds": [
-                    "/home/edge_assets/edge_hub_volume:/edge_hub_volume"
-                  ],
                   "PortBindings": {
                     "5671/tcp": [
                       {
@@ -67,58 +55,17 @@
                   }
                 }
               }
-            },
-            "env": {
-              "storageFolder": {
-                "value": "edge_hub_volume"
-              }
             }
           }
         },
         "modules": {
-          "Mfg_Vision_CIS_Modular_Camera_1": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "visionaccelerator.azurecr.io/edge/core/cis_modular_master_cpu:0.1.1.0-amd64",
-              "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
-                "HostConfig": {
-                  "IpcMode": "host",
-                  "gpus": "0",
-                  "runtime": "nvidia",
-                  "NetworkMode": "host",
-                  "Binds": [
-                    "/home/edge_assets/images_volume:/images_volume",
-                    "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Camera_1:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Camera_1:/config",
-                    "/home/edge_assets/debug/Mfg_Vision_CIS_Camera_1:/debug"
-                  ],
-                  "Mounts": [
-                    {
-                      "Type": "volume",
-                      "Source": "images_volume",
-                      "Target": "/var/opt/images_volume"
-                    }
-                  ]
-                }
-              }
-            }
-          },
           "Mfg_Vision_CIS_Monolithic_Camera_1": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "visionaccelerator.azurecr.io/edge/core/cis_monolithic_master_cpu:0.1.1.0-amd64",
+              "image": "${MODULES.Mfg_Vision_CIS_Monolithic_Camera_1}",
               "createOptions": {
                 "NetworkingConfig": {
                   "EndpointsConfig": {
@@ -133,8 +80,8 @@
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Camera_2:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Camera_2:/config"
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_1:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_1:/config"
                   ],
                   "Mounts": [
                     {
@@ -149,6 +96,229 @@
             "env": {
               "BOUNDARY_DETECTION": {
                 "value": "false"
+              },
+              "MODULE_CONN_STR": {
+                "value": "${MONO_CAM_1_STR}"
+              }
+            }
+          },
+          "Mfg_Vision_CIS_Monolithic_Camera_2": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_CIS_Monolithic_Camera_2}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "IpcMode": "host",
+                  "gpus": "0",
+                  "runtime": "nvidia",
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume",
+                    "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_2:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_2:/config"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images_volume"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "BOUNDARY_DETECTION": {
+                "value": "false"
+              }
+            }
+          },
+          "Mfg_Vision_CIS_Modular_Camera_1": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_1}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "gpus": "0",
+                  "runtime": "nvidia",
+                  "IpcMode": "host",
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume",
+                    "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/inference_volume:/app/inference",
+                    "/home/edge_assets/capture_volume:/app/capture",
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_1:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_1:/config"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images_volume"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "BOUNDARY_DETECTION": {
+                "value": "false"
+              },
+              "MODULE_CONN_STR": {
+                "value": "${MODULAR_CAM_1_STR}"
+              }
+            }
+          },
+          "Mfg_Vision_CIS_Modular_Camera_2": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_2}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "gpus": "0",
+                  "runtime": "nvidia",
+                  "IpcMode": "host",
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume",
+                    "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/inference_volume:/app/inference",
+                    "/home/edge_assets/capture_volume:/app/capture",
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_2:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_2:/config"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images_volume"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "BOUNDARY_DETECTION": {
+                "value": "false"
+              },
+              "MODULE_CONN_STR": {
+                "value": "${MODULAR_CAM_2_STR}"
+              }
+            }
+          },
+          "Mfg_Vision_CIS_Modular_Camera_3": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_3}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "gpus": "0",
+                  "runtime": "nvidia",
+                  "IpcMode": "host",
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume",
+                    "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/inference_volume:/app/inference",
+                    "/home/edge_assets/capture_volume:/app/capture",
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_3:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_3:/config"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images_volume"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "BOUNDARY_DETECTION": {
+                "value": "false"
+              },
+              "MODULE_CONN_STR": {
+                "value": "${MODULAR_CAM_3_STR}"
+              }
+            }
+          },
+          "Mfg_Vision_CIS_Modular_Camera_4": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_4}",
+              "createOptions": {
+                "NetworkingConfig": {
+                  "EndpointsConfig": {
+                    "host": {}
+                  }
+                },
+                "HostConfig": {
+                  "gpus": "0",
+                  "runtime": "nvidia",
+                  "IpcMode": "host",
+                  "NetworkMode": "host",
+                  "Binds": [
+                    "/home/edge_assets/images_volume:/images_volume",
+                    "/home/edge_assets/model_sync:/model_volume",
+                    "/home/edge_assets/inference_volume:/app/inference",
+                    "/home/edge_assets/capture_volume:/app/capture",
+                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_4:/image_sink_volume",
+                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_4:/config"
+                  ],
+                  "Mounts": [
+                    {
+                      "Type": "volume",
+                      "Source": "images_volume",
+                      "Target": "/var/opt/images_volume"
+                    }
+                  ]
+                }
+              }
+            },
+            "env": {
+              "BOUNDARY_DETECTION": {
+                "value": "false"
+              },
+              "MODULE_CONN_STR": {
+                "value": "${MODULAR_CAM_4_STR}"
               }
             }
           },
@@ -259,6 +429,9 @@
               },
               "STORE_CONN_STR": {
                 "value": "${STORAGE_CONN_STR}"
+              },
+              "MODULE_CONN_STR": {
+                "value": "${IMAGE_UPLOAD_STR}"
               }
             }
           },
@@ -292,13 +465,13 @@
             },
             "env": {
               "RETENTION_POLICY_SECONDS": {
-                "value": "300"
+                "value": "600"
               }
             }
           },
           "Mfg_Vision_File_Download_Utility": {
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/core_file_downloader:0.1.82.0-amd64",
+              "image": "${MODULES.Mfg_Vision_File_Download_Utility}",
               "createOptions": {
                 "HostConfig": {
                   "Binds": [
@@ -323,7 +496,6 @@
             "status": "running",
             "restartPolicy": "always"
           },
-          
           "Mfg_Vision_File_Upload_Utility": {
             "settings": {
               "image": "${MODULES.Mfg_Vision_File_Upload_Utility}",
@@ -357,7 +529,7 @@
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "aiotdevopsacr.azurecr.io/mfg_vision_dashboard_custom:0.1.82.0-amd64",
+              "image": "${MODULES.Mfg_Vision_Dashboard_Custom}",
               "createOptions": {
                 "NetworkingConfig": {
                   "EndpointsConfig": {
@@ -368,7 +540,7 @@
                   "PortBindings": {
                     "80/tcp": [
                       {
-                        "HostPort": "22000"
+                        "HostPort": "23000"
                       }
                     ]
                   },
@@ -423,7 +595,7 @@
                   "IpcMode": "host",
                   "NetworkMode": "host",
                   "Binds": [
-                    "/home/edge_assets/Manufacturing_Vision_CIS_config:/config"
+                    "/home/edge_assets/CIS_config/Mfg_Vision_Twin_Configuration_Tool:/config"
                   ]
                 }
               }
@@ -431,6 +603,9 @@
             "env": {
               "STORE_CONN_STR": {
                 "value": "${STORAGE_CONN_STR}"
+              },
+              "BLOB_AZURE_MODEL_CONTAINER": {
+                "value": "model-sync"
               }
             }
           },
@@ -447,7 +622,7 @@
                     "SYS_PTRACE"
                   ],
                   "Binds": [
-                    "sqlvolume:/sqlvolume"
+                    "sqlvolume:/sqlvolume1"
                   ],
                   "PortBindings": {
                     "1433/tcp": [
@@ -459,7 +634,7 @@
                   "Mounts": [
                     {
                       "Type": "volume",
-                      "Source": "sqlvolume",
+                      "Source": "sqlvolume1",
                       "Target": "/var/opt/mssql"
                     }
                   ]
@@ -485,6 +660,16 @@
                 "value": "SQL_Latin1_General_CP1_CI_AS"
               }
             }
+          },
+          "comm_test": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "${MODULES.comm_test}",
+              "createOptions": {}
+            }
           }
         }
       }
@@ -493,10 +678,19 @@
       "properties.desired": {
         "schemaVersion": "1.1",
         "routes": {
-          "Mfg_Vision_CIS_Modular_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputInference INTO $upstream",
           "Mfg_Vision_CIS_Monolithic_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
-          "Mfg_Vision_CIS_Camera_2_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")"
+          "Mfg_Vision_CIS_Monolithic_Camera_2_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_2/outputs/outputInference INTO $upstream",
+          "Mfg_Vision_CIS_Modular_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputInference INTO $upstream",
+          "Mfg_Vision_CIS_Modular_Camera_2_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_2/outputs/outputInference INTO $upstream",
+          "Mfg_Vision_CIS_Modular_Camera_3_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_3/outputs/outputInference INTO $upstream",
+          "Mfg_Vision_CIS_Modular_Camera_4_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_4/outputs/outputInference INTO $upstream",
+          "Mfg_Vision_CIS_Monolithic_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "Mfg_Vision_CIS_Monolithic_Camera_2_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_2/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "Mfg_Vision_CIS_Modular_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "Mfg_Vision_CIS_Modular_Camera_2_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_2/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "Mfg_Vision_CIS_Modular_Camera_3_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_3/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "Mfg_Vision_CIS_Modular_Camera_4_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_4/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
+          "comm_testToIoTHub": "FROM /messages/modules/comm_test/outputs/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

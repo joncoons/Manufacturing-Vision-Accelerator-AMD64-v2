@@ -1,4 +1,4 @@
-FROM visionaccelerator.azurecr.io/nvidia/cuda:10.2-cudnn8-runtime-ubuntu18.04
+FROM nvcr.io/nvidia/cuda:11.4.2-cudnn8-runtime-ubuntu18.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Create folder structure for container
@@ -24,8 +24,15 @@ RUN apt-get install -y --no-install-recommends \
     libprotobuf-dev \
     protobuf-compiler \
     gcc \
-    g++ && \
+    g++ \
+    build-essential \
+    pkg-config \
+    gnupg && \
     rm -rf /var/lib/apt/lists/*
+
+# Shapely prereq
+RUN apt update && apt install -y --no-install-recommends \
+    libgeos-dev
 
 # Comment out if not using Allied Vision camera
 COPY VimbaSDK/Vimba_v5.1_Linux64.tgz /opt
@@ -54,36 +61,38 @@ RUN apt update \
 
 # ONNX & ONNX runtime, OpenCV foundational packages
 RUN python3.7 -m pip install --upgrade pip wheel setuptools
-RUN python3.7 -m pip install cython numpy>=1.19.0 pillow onnxruntime-gpu==1.6.0 opencv-contrib-python-headless pyodbc azure-iot-device~=2.7.0
+RUN python3.7 -m pip install cython numpy>=1.19.0 pillow onnxruntime-gpu==1.9.0 opencv-contrib-python-headless~=4.5.5 pyodbc azure-iot-device
 
 # Comment out if not using ACV->ONNX
-RUN python3.7 -m pip install onnx==1.8.0 
+RUN python3.7 -m pip install onnx==1.8.1 
 
 # Comment out if not using YOLOv5->ONNX
-RUN python3.7 -m pip install torch torchvision
+RUN python3.7 -m pip install torch==1.8.1 torchvision==0.9.1
 RUN python3.7 -m pip install pandas tqdm PyYAML
-RUN python3.7 -m pip install scipy seaborn requests
-RUN python3.7 -m pip install pybind11 pytest protobuf
-RUN python3.7 -m pip install objdict
+RUN python3.7 -m pip install scipy requests
+RUN python3.7 -m pip install pybind11 pytest protobuf~=3.17.3
+RUN python3.7 -m pip install shapely
 
 # Comment out if not using Basler
 RUN python3.7 -m pip install pypylon
 
-# Cleanup
-RUN rm -rf /var/lib/apt/lists/* \
-    && apt-get -y autoremove
-
 # Vimba continued ///////////////////////////
 #Pulled from https://stackoverflow.com/questions/55313610/importerror-libgl-so-1-cannot-open-shared-object-file-no-such-file-or-directo
-RUN apt-get clean
 RUN apt-get update
-RUN apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt-get install -y --no-install-recommends \
+    ffmpeg libsm6 libxext6  && \
+    rm -rf /var/lib/apt/lists/*
 # /////////////////////////////////////////
+
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends \
+    ca-certificates  && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY /app/ .
 
-ENV LD_LIBRARY_PATH=/usr/local/cuda-10.2/lib64:$LD_LIBRARY_PATH
-ENV PATH=/usr/local/cuda-10.2/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda-11.4/lib64:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/cuda-11.4/bin:$PATH
 RUN ldconfig
 
 CMD [ "python3.7", "-u", "./main.py" ]

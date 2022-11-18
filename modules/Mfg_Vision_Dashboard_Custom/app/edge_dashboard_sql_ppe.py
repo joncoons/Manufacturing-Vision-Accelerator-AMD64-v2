@@ -103,7 +103,7 @@ if __name__ == '__main__':
         print(error)
         sys.exit(1)
 
-    sql_server = 'localhost'
+    sql_server = '127.0.0.1'
     sql_port = '1433'
     sql_uid = 'SA'
     print('DRIVER={ODBC Driver 17 for SQL Server};PORT='+sql_port+';SERVER='+sql_server+';DATABASE='+sql_db+';UID='+sql_uid+';PWD='+ sql_pwd)
