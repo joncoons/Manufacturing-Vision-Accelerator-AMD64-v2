@@ -59,89 +59,6 @@
           }
         },
         "modules": {
-          "Mfg_Vision_CIS_Monolithic_Camera_1": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.Mfg_Vision_CIS_Monolithic_Camera_1}",
-              "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
-                "HostConfig": {
-                  "IpcMode": "host",
-                  "gpus": "0",
-                  "runtime": "nvidia",
-                  "NetworkMode": "host",
-                  "Binds": [
-                    "/home/edge_assets/images_volume:/images_volume",
-                    "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_1:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_1:/config"
-                  ],
-                  "Mounts": [
-                    {
-                      "Type": "volume",
-                      "Source": "images_volume",
-                      "Target": "/var/opt/images_volume"
-                    }
-                  ]
-                }
-              }
-            },
-            "env": {
-              "BOUNDARY_DETECTION": {
-                "value": "false"
-              },
-              "MODULE_CONN_STR": {
-                "value": "${MONO_CAM_1_STR}"
-              }
-            }
-          },
-          "Mfg_Vision_CIS_Monolithic_Camera_2": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.Mfg_Vision_CIS_Monolithic_Camera_2}",
-              "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
-                "HostConfig": {
-                  "IpcMode": "host",
-                  "gpus": "0",
-                  "runtime": "nvidia",
-                  "NetworkMode": "host",
-                  "Binds": [
-                    "/home/edge_assets/images_volume:/images_volume",
-                    "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Monolithic_Camera_2:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Monolithic_Camera_2:/config"
-                  ],
-                  "Mounts": [
-                    {
-                      "Type": "volume",
-                      "Source": "images_volume",
-                      "Target": "/var/opt/images_volume"
-                    }
-                  ]
-                }
-              }
-            },
-            "env": {
-              "BOUNDARY_DETECTION": {
-                "value": "false"
-              }
-            }
-          },
           "Mfg_Vision_CIS_Modular_Camera_1": {
             "version": "1.0",
             "type": "docker",
@@ -150,16 +67,9 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_1}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
                   "gpus": "0",
                   "runtime": "nvidia",
-                  "IpcMode": "host",
-                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
@@ -195,16 +105,9 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_2}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
                   "gpus": "0",
                   "runtime": "nvidia",
-                  "IpcMode": "host",
-                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
@@ -240,16 +143,10 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_3}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
                   "gpus": "0",
                   "runtime": "nvidia",
                   "IpcMode": "host",
-                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
@@ -285,16 +182,12 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_4}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
+       
+
                 "HostConfig": {
                   "gpus": "0",
                   "runtime": "nvidia",
-                  "IpcMode": "host",
-                  "NetworkMode": "host",
+
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume",
                     "/home/edge_assets/model_sync:/model_volume",
@@ -403,13 +296,7 @@
             "settings": {
               "image": "${MODULES.Mfg_Vision_Image_Upload}",
               "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
                 "HostConfig": {
-                  "NetworkMode": "host",
                   "Binds": [
                     "/home/edge_assets/images_volume:/images_volume"
                   ],
@@ -622,7 +509,7 @@
                     "SYS_PTRACE"
                   ],
                   "Binds": [
-                    "sqlvolume:/sqlvolume1"
+                    "sqlvolume1:/sqlvolume1"
                   ],
                   "PortBindings": {
                     "1433/tcp": [

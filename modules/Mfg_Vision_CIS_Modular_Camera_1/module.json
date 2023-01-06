@@ -6,7 +6,7 @@
     "tag": {
       "version": "${CONTAINER_VERSION_TAG}",
       "platforms": {
-        "amd64": "./Dockerfile.amd64_cpu"
+        "amd64": "./Dockerfile.amd64_gpu"
       }
     },
     "buildOptions": [],

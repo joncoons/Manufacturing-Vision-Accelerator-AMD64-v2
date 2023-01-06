@@ -41,7 +41,7 @@ class InsertInference():
         if self.sql_state == 0:
             self.create_db()
 
-        with pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};PORT=1433;SERVER=127.0.0.1;UID=SA;PWD=Sm&8jZX*WSkJL2j%27XT;DATABASE=DefectDB') as sql_conn:
+        with pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};PORT=1433;SERVER=AzureSQLEdge;UID=SA;PWD=Sm&8jZX*WSkJL2j%27XT;DATABASE=DefectDB') as sql_conn:
             print('Connected to DB')
             sql_conn.autocommit = True
             cursor = sql_conn.cursor()
@@ -110,7 +110,7 @@ class InsertInference():
             return 1
 
     def create_db(self):
-        with pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};PORT=1433;SERVER=127.0.0.1;UID=SA;PWD=Sm&8jZX*WSkJL2j%27XT') as sql_conn:
+        with pyodbc.connect('DRIVER={ODBC Driver 17 for SQL Server};PORT=1433;SERVER=AzureSQLEdge;UID=SA;PWD=Sm&8jZX*WSkJL2j%27XT') as sql_conn:
             sql_conn.autocommit = True
             cursor = sql_conn.cursor()
             cursor.execute("SELECT name FROM master.dbo.sysdatabases where name='DefectDB'")

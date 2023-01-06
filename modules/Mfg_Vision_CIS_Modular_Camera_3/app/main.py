@@ -9,8 +9,8 @@ from azure.iot.device import IoTHubModuleClient, Message
 class HubConnector():
 
     def __init__(self):
-        # self.client = IoTHubModuleClient.create_from_edge_environment()
-        self.client = IoTHubModuleClient.create_from_connection_string(os.environ["MODULE_CONN_STR"])
+        self.client = IoTHubModuleClient.create_from_edge_environment()
+        # self.client = IoTHubModuleClient.create_from_connection_string(os.environ["MODULE_CONN_STR"])
         self.client.connect()
 
     def send_to_output(self, message: Union[Message, str], outputQueueName: str):

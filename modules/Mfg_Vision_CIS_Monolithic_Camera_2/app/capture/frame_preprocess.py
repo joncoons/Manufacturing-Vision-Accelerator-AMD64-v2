@@ -26,8 +26,8 @@ def frame_resize(img, target, model):
         else:
             img_data = None
         assert batch_size == img_data.shape[0]
-
         return img_data, ratio, pad_list
+
 
     elif model in ('acv', 'classification'):
         padColor = [0,0,0]
@@ -70,33 +70,41 @@ def frame_resize(img, target, model):
             interp = cv2.INTER_CUBIC
         aspect = w/h 
         if aspect > 1: # horizontal image
-            ratio = target / w
+            ratio = sw / w
             new_w = sw
-            new_h = np.round(new_w/aspect).astype(int)
-            pad_vert = (sh-new_h)/2
-            pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
+            new_h = np.round(h * ratio).astype(int)
+            if new_h > sh:
+                new_h = sh
+            if new_h < sh:
+                pad_vert = (sh-new_h)/2
+                pad_top, pad_bot = np.floor(pad_vert).astype(int), np.ceil(pad_vert).astype(int)
+            else:
+                pad_top, pad_bot = 0, 0
             pad_left, pad_right = 0, 0
         else: # vertical image
-            ratio = target / h
+            ratio = sh / h
             new_h = sh
-            new_w = np.round(new_h*aspect).astype(int)
-            pad_horz = (sw-new_w)/2
-            pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
+            new_w = np.round(w * ratio).astype(int)
+            if new_w > sw:
+                new_w = sw
+            if new_w < sw:
+                pad_horz = (sw-new_w)/2
+                pad_left, pad_right = np.floor(pad_horz).astype(int), np.ceil(pad_horz).astype(int)
+            else:
+                pad_left, pad_right = 0, 0
             pad_top, pad_bot = 0, 0
 
-        print (f'Original resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')
+        print (f'Original: {h} x {w}, Resize: {new_h} x {new_w}, Padded resize: {(sh, sw)}')
 
         padding = pad_left, pad_right, pad_top, pad_bot
         scaled_frame = cv2.resize(img, (new_w, new_h), interpolation=interp)
         scaled_frame = cv2.copyMakeBorder(scaled_frame, pad_top, pad_bot, pad_left, pad_right, borderType=cv2.BORDER_CONSTANT, value=padColor) 
 
         return scaled_frame, ratio, padding
-        
+
     elif model in ('ocr'):
-        modified_frame = img.copy()
-        # modified_frame = cv2.cvtColor(modified_frame, cv2.COLOR_BGR2GRAY) # convert to grayscale
-        # modified_frame = cv2.GaussianBlur(modified_frame,(3,3),0) # blur to reduce noise
-        return modified_frame
+        ocrGreyFrame = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        return ocrGreyFrame
     else:
         print('Model not supported for image resizing')
         pass

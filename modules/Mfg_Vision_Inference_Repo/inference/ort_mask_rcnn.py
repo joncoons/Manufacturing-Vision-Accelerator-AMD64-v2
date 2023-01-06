@@ -43,11 +43,11 @@ class ONNXRuntimeObjectDetection():
         self.classes = classes
         self.num_classes = len(classes)
              
-    def predict(self, pre_image, image):
+    def predict(self, normalized_image, image):
         sess_input = self.session.get_inputs()
         sess_output = self.session.get_outputs()
         output_names = [output.name for output in sess_output]
-        outputs = self.session.run(output_names=output_names, input_feed={sess_input[0].name:pre_image})
+        outputs = self.session.run(output_names=output_names, input_feed={sess_input[0].name:normalized_image})
         
         def _get_box_dims(image_shape, box):
             box_keys = ['xmin', 'ymin', 'xmax', 'ymax']
@@ -57,10 +57,6 @@ class ONNXRuntimeObjectDetection():
             return bbox
 
         def _get_prediction(boxes, labels, scores, masks, image_shape, classes):
-            now = datetime.now()
-            filetime = now.strftime("%Y%d%m%H%M%S%f")
-            annotatedName = f"mask-{filetime}-annotated.jpg"
-            annotatedPath = os.path.join('/images_volume', annotatedName)
             raw_pred = []
             
             color = (0, 255, 0)
@@ -75,8 +71,10 @@ class ONNXRuntimeObjectDetection():
                 # image_text = f"{labelName}@{probability*100}%"
                 image_text = f"{probability*100}%"
                 mask = mask[0, :, :, None]
+                print(f'mask.shape: {mask.shape}')
                 mask = cv2.resize(mask, (image.shape[1], image.shape[0]), 0, 0, interpolation = cv2.INTER_NEAREST)    
                 mask = mask > self.target_prob
+                print(f"mask: {mask}")
                 image_masked = image.copy()
                 image_masked[mask] = (0, 255, 100)
                 alpha = 0.3  # alpha blending with range 0 to 1
@@ -86,7 +84,7 @@ class ONNXRuntimeObjectDetection():
                 # annotated_frame = cv2.rectangle(annotated_frame, start_point, end_point, color, thickness)
                 # annotated_frame = cv2.putText(annotated_frame, image_text, start_point, fontFace = cv2.FONT_HERSHEY_TRIPLEX, fontScale = .5, color = (255, 255, 255))
 
-                FrameSave(annotatedPath, annotated_frame)           
+                # FrameSave(annotated_mask_path, annotated_frame)           
 
                 prediction = {  
                     'probability': probability,
@@ -96,17 +94,17 @@ class ONNXRuntimeObjectDetection():
                 }
                 raw_pred.append(prediction)
 
-            return raw_pred, annotatedName, annotatedPath
+            return raw_pred, annotated_frame
 
         boxes, labels, scores, masks = outputs[0], outputs[1], outputs[2], outputs[3]
-        predictions, a_name, a_path = _get_prediction(boxes, labels, scores, masks, (self.height_onnx, self.width_onnx), self.classes)
+        predictions, masked_image = _get_prediction(boxes, labels, scores, masks, (self.height_onnx, self.width_onnx), self.classes)
 
         if len(predictions) > 0:
             print(f"Filtered predictions: {predictions}")
-            return predictions, a_name, a_path
+            return predictions, masked_image
         else:
             print("No predictions passed the threshold")  
-            return []
+            return [], None
 
 def log_msg(msg):
     print("{}: {}".format(datetime.now(), msg))
@@ -139,18 +137,16 @@ def predict_mask_rcnn(image):
     frame = np.expand_dims(norm_img_data, axis=0)
 
     t1 = time.time()
-    predictions, a_name, a_path = ort_model.predict(frame, image)
+    predictions, masked_image = ort_model.predict(frame, image)
     t2 = time.time()
     t_infer = (t2-t1)*1000
     response = {
         'created': datetime.utcnow().isoformat(),
         'inference_time': t_infer,
-        'annotated_image_name': a_name,
-        'annotated_image_path': a_path,
         'predictions': predictions
         }
-    return response
-
+    return response, masked_image
+# 
 def warmup_image(batch_size, warmup_dim):
     for _ in range(batch_size):
         yield np.zeros([warmup_dim, warmup_dim, 3], dtype=np.uint8)

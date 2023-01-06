@@ -145,7 +145,7 @@ class Cam_File_Sink():
                         from inference.ort_mask_rcnn import predict_mask_rcnn
                         model_type = 'Instance Segmentation'
                         frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
-                        result = predict_mask_rcnn(frame_optimized)
+                        result, annotated_frame = predict_mask_rcnn(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                     elif self.modelClassMultiLabel:
@@ -374,9 +374,11 @@ class Cam_File_Sink():
                                 'position': self.camPosition,
                                 'path': annotatedPath
                                 }
+                            print(f'anotated_msg: {annotated_msg}')
+                            
                             self.send_to_upload(json.dumps(annotated_msg))
 
-                        elif self.storeAllInferences:
+                        elif self.storeAllInferences and detection_count == 0:
                             print("No object detected.")
                             inference_obj = {
                                 'model_name': self.model_name,
@@ -398,12 +400,9 @@ class Cam_File_Sink():
                         self.send_to_upstream(json.dumps(inference_obj))   
 
                     elif model_type == 'Instance Segmentation':
-                        detection_count = len(result['predictions'])
                         t_infer = result["inference_time"]
-                        annotatedName = result["annotated_image_name"]
-                        annotatedPath = result["annotated_image_path"] 
-                        print(f"Detection Count: {detection_count}")
                         if detection_count > 0:
+                            print(f"Detection Count: {detection_count}")
                             inference_obj = {
                             'model_name': self.model_name,
                             'object_detected': 1,
@@ -420,8 +419,9 @@ class Cam_File_Sink():
                             }
                             
                         #   Frame upload
+                            FrameSave(annotatedPath, annotated_frame)
                             annotated_msg = {
-                            'fs_name': "images-annotated",
+                            'fs_name': "annotated-mask-test",
                             'img_name': annotatedName,
                             'location': self.camLocation,
                             'position': self.camPosition,
@@ -429,7 +429,7 @@ class Cam_File_Sink():
                             }
                             self.send_to_upload(json.dumps(annotated_msg))  
 
-                        elif self.storeAllInferences:
+                        elif detection_count==0 and self.storeAllInferences:
                             print("No object detected.")
                             inference_obj = {
                                 'model_name': self.model_name,

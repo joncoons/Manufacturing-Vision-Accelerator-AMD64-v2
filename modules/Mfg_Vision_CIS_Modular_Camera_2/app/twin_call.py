@@ -8,8 +8,8 @@ class TwinUpdater():
     def __init__(self) -> None:
 
         try:
-            # self.client = IoTHubModuleClient.create_from_edge_environment()
-            self.client = IoTHubModuleClient.create_from_connection_string(os.environ["MODULE_CONN_STR"])
+            self.client = IoTHubModuleClient.create_from_edge_environment()
+            # self.client = IoTHubModuleClient.create_from_connection_string(os.environ["MODULE_CONN_STR"])
             self.client.connect()
             print("Client connected")
             twin_read = self.client.get_twin()

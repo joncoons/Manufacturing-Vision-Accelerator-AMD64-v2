@@ -76,46 +76,6 @@
           }
         },
         "modules": {
-          "Mfg_Vision_CIS_Modular_Camera_1": {
-            "version": "1.0",
-            "type": "docker",
-            "status": "running",
-            "restartPolicy": "always",
-            "settings": {
-              "image": "${MODULES.Mfg_Vision_CIS_Modular_Camera_1}",
-              "createOptions": {
-                "NetworkingConfig": {
-                  "EndpointsConfig": {
-                    "host": {}
-                  }
-                },
-                "HostConfig": {
-                  "IpcMode": "host",
-                  "NetworkMode": "host",
-                  "Binds": [
-                    "/home/edge_assets/images_volume:/images_volume",
-                    "/home/edge_assets/model_sync:/model_volume",
-                    "/home/edge_assets/inference_volume:/app/inference",
-                    "/home/edge_assets/capture_volume:/app/capture",
-                    "/home/edge_assets/image_sink_volume/Mfg_Vision_CIS_Modular_Camera_1:/image_sink_volume",
-                    "/home/edge_assets/CIS_Config/Mfg_Vision_CIS_Modular_Camera_1:/config"
-                  ],
-                  "Mounts": [
-                    {
-                      "Type": "volume",
-                      "Source": "images_volume",
-                      "Target": "/var/opt/images_volume"
-                    }
-                  ]
-                }
-              }
-            },
-            "env": {
-              "BOUNDARY_DETECTION": {
-                "value": "false"
-              }
-            }
-          },
           "Mfg_Vision_CIS_Monolithic_Camera_1": {
             "version": "1.0",
             "type": "docker",
@@ -491,7 +451,7 @@
                 "value": "Y"
               },
               "MSSQL_SA_PASSWORD": {
-                "value": "Sm&8jZX*WSkJL2j%27XT"
+                "value": "${MSSQL_SA_PASSWORD}"
               },
               "MSSQL_LCID": {
                 "value": "1033"
@@ -509,9 +469,7 @@
         "schemaVersion": "1.1",
         "routes": {
           "Mfg_Vision_CIS_Monolithic_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_Modular_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_Monolithic_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
-          "Mfg_Vision_CIS_Modular_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")"
+          "Mfg_Vision_CIS_Monolithic_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

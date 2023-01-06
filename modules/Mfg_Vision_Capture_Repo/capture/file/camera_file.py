@@ -124,6 +124,7 @@ class Cam_File_Sink():
                         new_w = int(ratio[0]*w)
                         new_h = int(ratio[1]*h)
                         frame_resized = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+                        # frame_resized = frame_resize(frame, self.targetDim, model = "acv")
                         annotated_frame = frame_resized.copy()
                     elif self.modelFasterRCNN:
                         from inference.ort_faster_rcnn import predict_faster_rcnn
@@ -145,7 +146,7 @@ class Cam_File_Sink():
                         from inference.ort_mask_rcnn import predict_mask_rcnn
                         model_type = 'Instance Segmentation'
                         frame_optimized, ratio, padding = frame_resize(frame, self.targetDim, model = "mask_rcnn")
-                        result = predict_mask_rcnn(frame_optimized)
+                        result, annotated_frame = predict_mask_rcnn(frame_optimized)
                         predictions = result['predictions']
                         frame_resized = frame_optimized.copy()
                     elif self.modelClassMultiLabel:
@@ -368,7 +369,7 @@ class Cam_File_Sink():
                         
                             FrameSave(annotatedPath, annotated_frame)
                             annotated_msg = {
-                                'fs_name': "applied-ai-annotated",
+                                'fs_name': "demo12122022",
                                 'img_name': annotatedName,
                                 'location': self.camLocation,
                                 'position': self.camPosition,
@@ -378,7 +379,7 @@ class Cam_File_Sink():
                             
                             self.send_to_upload(json.dumps(annotated_msg))
 
-                        elif self.storeAllInferences:
+                        elif self.storeAllInferences and detection_count == 0:
                             print("No object detected.")
                             inference_obj = {
                                 'model_name': self.model_name,
@@ -400,12 +401,9 @@ class Cam_File_Sink():
                         self.send_to_upstream(json.dumps(inference_obj))   
 
                     elif model_type == 'Instance Segmentation':
-                        detection_count = len(result['predictions'])
                         t_infer = result["inference_time"]
-                        annotatedName = result["annotated_image_name"]
-                        annotatedPath = result["annotated_image_path"] 
-                        print(f"Detection Count: {detection_count}")
                         if detection_count > 0:
+                            print(f"Detection Count: {detection_count}")
                             inference_obj = {
                             'model_name': self.model_name,
                             'object_detected': 1,
@@ -421,9 +419,10 @@ class Cam_File_Sink():
                             'detected_objects': predictions
                             }
                             
-                        #   Frame upload
+                            FrameSave(annotatedPath, annotated_frame)
+                            
                             annotated_msg = {
-                            'fs_name': "images-annotated",
+                            'fs_name': "demo12122022",
                             'img_name': annotatedName,
                             'location': self.camLocation,
                             'position': self.camPosition,
@@ -431,7 +430,7 @@ class Cam_File_Sink():
                             }
                             self.send_to_upload(json.dumps(annotated_msg))  
 
-                        elif self.storeAllInferences:
+                        elif detection_count==0 and self.storeAllInferences:
                             print("No object detected.")
                             inference_obj = {
                                 'model_name': self.model_name,
@@ -500,7 +499,7 @@ class Cam_File_Sink():
 
                 if (self.storeRawFrames == True):
                     frame_msg = {
-                    'fs_name': "applied-ai-frame",
+                    'fs_name': "demo12122022",
                     'img_name': frameFileName,
                     'location': self.camLocation,
                     'position': self.camPosition,
@@ -511,7 +510,7 @@ class Cam_File_Sink():
                 if (self.frameCount*(self.inferenceFPS/self.camFPS)) % self.retrainInterval == 0:
                     FrameSave(retrainFilePath, frame)
                     retrain_msg = {
-                    'fs_name': "applied-ai-retraining",
+                    'fs_name': "demo12122022",
                     'img_name': retrainFileName,
                     'location': self.camLocation,
                     'position': self.camPosition,

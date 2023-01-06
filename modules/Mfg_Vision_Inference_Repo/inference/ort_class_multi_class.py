@@ -129,7 +129,7 @@ def initialize_class_multi_class(model_path, labels_path, target_dim, target_pro
     print('Success!')
 
 def predict_class_multi_class(image):
-    frame = frame.transpose(2,0,1)
+    frame = image.transpose(2,0,1)
     mean_vec = np.array([0.485, 0.456, 0.406])
     std_vec = np.array([0.229, 0.224, 0.225])
     norm_img_data = np.zeros(frame.shape).astype('float32')
