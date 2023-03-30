@@ -91,9 +91,6 @@
             "env": {
               "BOUNDARY_DETECTION": {
                 "value": "false"
-              },
-              "MODULE_CONN_STR": {
-                "value": "${MODULAR_CAM_1_STR}"
               }
             }
           },
@@ -129,9 +126,6 @@
             "env": {
               "BOUNDARY_DETECTION": {
                 "value": "false"
-              },
-              "MODULE_CONN_STR": {
-                "value": "${MODULAR_CAM_2_STR}"
               }
             }
           },
@@ -168,9 +162,6 @@
             "env": {
               "BOUNDARY_DETECTION": {
                 "value": "false"
-              },
-              "MODULE_CONN_STR": {
-                "value": "${MODULAR_CAM_3_STR}"
               }
             }
           },
@@ -209,9 +200,6 @@
             "env": {
               "BOUNDARY_DETECTION": {
                 "value": "false"
-              },
-              "MODULE_CONN_STR": {
-                "value": "${MODULAR_CAM_4_STR}"
               }
             }
           },
@@ -565,19 +553,14 @@
       "properties.desired": {
         "schemaVersion": "1.1",
         "routes": {
-          "Mfg_Vision_CIS_Monolithic_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_Monolithic_Camera_2_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_2/outputs/outputInference INTO $upstream",
           "Mfg_Vision_CIS_Modular_Camera_1_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputInference INTO $upstream",
           "Mfg_Vision_CIS_Modular_Camera_2_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_2/outputs/outputInference INTO $upstream",
           "Mfg_Vision_CIS_Modular_Camera_3_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_3/outputs/outputInference INTO $upstream",
           "Mfg_Vision_CIS_Modular_Camera_4_Inference_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_4/outputs/outputInference INTO $upstream",
-          "Mfg_Vision_CIS_Monolithic_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
-          "Mfg_Vision_CIS_Monolithic_Camera_2_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Monolithic_Camera_2/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
           "Mfg_Vision_CIS_Modular_Camera_1_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_1/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
           "Mfg_Vision_CIS_Modular_Camera_2_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_2/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
           "Mfg_Vision_CIS_Modular_Camera_3_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_3/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
-          "Mfg_Vision_CIS_Modular_Camera_4_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_4/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")",
-          "comm_testToIoTHub": "FROM /messages/modules/comm_test/outputs/* INTO $upstream"
+          "Mfg_Vision_CIS_Modular_Camera_4_Image_Upload": "FROM /messages/modules/Mfg_Vision_CIS_Modular_Camera_4/outputs/outputImageSend INTO BrokeredEndpoint(\"/modules/Mfg_Vision_Image_Upload/inputs/inputImageSend\")"
         },
         "storeAndForwardConfiguration": {
           "timeToLiveSecs": 7200

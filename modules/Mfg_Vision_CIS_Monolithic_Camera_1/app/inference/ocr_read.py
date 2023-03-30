@@ -21,8 +21,9 @@ def _send_frame_for_OCR_processing(frame: bytes) -> Union[Response, str]:
             Union[Response, str]: Response from the endpoint.
         """
         headers = {"Content-Type": "application/octet-stream"}
+        params = {"language": "eng", "detectOrientation": "true", 'readSlim': 'true'}
         try:
-            response = requests.post(ocr_endpoint, headers=headers, params="", data=frame)
+            response = requests.post(ocr_endpoint, headers=headers, params=params, data=frame)
         except Exception as e:
             print("_send_frame_for_OCR_processing Exception -" + str(e))
             return "[]"
